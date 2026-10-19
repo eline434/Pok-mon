@@ -3,6 +3,10 @@ import { SKY_COLOR, GROUND_COLOR } from './constants/colors.js';
 import { createField } from './objects/field.js';
 import { createTrainer } from './objects/trainer.js';
 import { createHeart } from './objects/heart.js';
+import { createTallGrass } from './objects/tallGrass.js';
+import { createScenery } from './objects/scenery.js';
+import { createRandom } from './utils/random.js';
+import { WORLD_SEED } from './constants/world.js';
 import { createInput } from './systems/input.js';
 import { createFollowCamera } from './systems/followCamera.js';
 import { createPointer } from './systems/pointer.js';
@@ -47,8 +51,13 @@ scene.add(sun, sun.target);
 const field = createField();
 scene.add(field.mesh);
 
-const trainer = await createTrainer();
-scene.add(trainer.group);
+// Elk eigen seed: laden gebeurt parallel, dus één gedeelde generator zou de layout laten variëren.
+const [trainer, tallGrass, scenery] = await Promise.all([
+  createTrainer(),
+  createTallGrass(createRandom(WORLD_SEED)),
+  createScenery(createRandom(WORLD_SEED + 1)),
+]);
+scene.add(trainer.group, tallGrass.group, scenery.group);
 
 // Hartje zweeft voorlopig boven de trainer; in Fase 2 verhuist het naar de pokémon.
 const heart = createHeart();

@@ -6,8 +6,8 @@ import {
   TRAINER_MODEL_ROTATION,
   TRAINER_SPEED,
   TRAINER_TURN_SPEED,
-  FIELD_SIZE,
 } from '../constants/config.js';
+import { PLAYER_LIMIT } from '../constants/world.js';
 
 // Laadt het GLB-model en schaalt het naar TRAINER_HEIGHT, met de voeten op y = 0.
 const loadModel = async () => {
@@ -40,7 +40,7 @@ export const createTrainer = async () => {
   group.add(body);
 
   const direction = new THREE.Vector3();
-  const limit = FIELD_SIZE / 2 - 1;
+  const limit = PLAYER_LIMIT;
   let walkTime = 0;
   let walkAmount = 0; // 0 = stilstaan, 1 = lopen (vloeiend)
 
