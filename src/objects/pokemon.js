@@ -32,9 +32,30 @@ export const createPokemon = (species) => {
   root.add(body);
 
   let time = Math.random() * 10;
+  let reactTime = -1; // -1 = geen reactie bezig
+  const REACT_DURATION = 0.6;
+
+  // Blije reactie (bij aaien): sprongetje + pirouette.
+  const react = () => {
+    reactTime = 0;
+  };
+
+  const updateReaction = (delta) => {
+    if (reactTime < 0) return;
+    reactTime += delta;
+    const t = Math.min(reactTime / REACT_DURATION, 1);
+    model.position.y = Math.sin(t * Math.PI) * 0.35;
+    model.rotation.y = species.rotation + t * Math.PI * 2;
+    if (t >= 1) {
+      reactTime = -1;
+      model.position.y = 0;
+      model.rotation.y = species.rotation;
+    }
+  };
 
   const update = (delta) => {
     time += delta;
+    updateReaction(delta);
 
     if (species.motion === 'float') {
       body.position.y = species.hover + Math.sin(time * 2) * 0.1;
@@ -55,5 +76,5 @@ export const createPokemon = (species) => {
     body.scale.set(1, 1 + Math.sin(time * 3) * 0.03 - hop * 0.05, 1);
   };
 
-  return { root, update, species };
+  return { root, update, react, species };
 };

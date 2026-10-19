@@ -19,6 +19,8 @@ import { createTeam } from './systems/team.js';
 import { createHud } from './ui/hud.js';
 import { getSpecies } from './constants/pokemon.js';
 import { updateTweens } from './utils/tween.js';
+import { createBuddy } from './objects/buddy.js';
+import { PET_STROKE_PIXELS, PET_HAPPINESS, PET_CLICK_HAPPINESS } from './constants/config.js';
 
 const canvas = document.querySelector('#app');
 const message = document.querySelector('#message');
@@ -70,19 +72,54 @@ const [trainer, tallGrass, scenery] = await Promise.all([
 ]);
 scene.add(trainer.group, tallGrass.group, scenery.group);
 
-// Hartje zweeft voorlopig boven de trainer; in Fase 2 verhuist het naar de pokémon.
+// Buddy (gekozen pokémon uit je team) met het aai-hartje erboven.
+const buddy = createBuddy();
+scene.add(buddy.group);
+
 const heart = createHeart();
-const HEART_HEIGHT = 2.1;
 scene.add(heart.mesh);
 
 // Systemen
 const input = createInput();
 const followCamera = createFollowCamera(camera, trainer.group);
-createPointer(canvas, camera, [{ mesh: heart.mesh, onClick: heart.pop }]);
-
 const transition = createTransition();
 const team = createTeam();
 const hud = createHud(team);
+
+// Aaien: happiness van de buddy verhogen, hartje laten poppen, buddy reageert.
+const pet = (amount) => {
+  const member = team.getBuddy();
+  if (!member) return;
+  team.updateMember(member.uid, { happiness: Math.min(100, member.happiness + amount) });
+  heart.pop();
+  buddy.react();
+};
+
+let strokePixels = 0;
+const pointer = createPointer(canvas, camera, [
+  {
+    object: buddy.group,
+    cursor: 'grab',
+    onClick: () => pet(PET_CLICK_HAPPINESS),
+    onStroke: (pixels) => {
+      strokePixels += pixels;
+      while (strokePixels >= PET_STROKE_PIXELS) {
+        strokePixels -= PET_STROKE_PIXELS;
+        pet(PET_HAPPINESS);
+      }
+    },
+  },
+  { object: heart.mesh, onClick: () => pet(PET_CLICK_HAPPINESS) },
+]);
+
+const syncBuddy = () => {
+  const member = team.getBuddy();
+  buddy.setMember(member, trainer.group);
+  heart.setHappiness(member ? member.happiness / 100 : 0);
+  hud.setBuddy(member);
+};
+team.onChange(syncBuddy);
+syncBuddy();
 const encounterChecker = createEncounterChecker(trainer.group.position);
 
 // 'explore' = rondlopen, 'encounter' = wilde pokémon (geen besturing).
@@ -100,6 +137,7 @@ const wildEncounter = createWildEncounter({
   team,
   onEnd: () => {
     mode = 'explore';
+    pointer.setEnabled(true);
     encounterChecker.cooldown();
     followCamera.snap();
   },
@@ -107,17 +145,17 @@ const wildEncounter = createWildEncounter({
 
 const startEncounter = (species) => {
   mode = 'encounter';
+  pointer.setEnabled(false);
   wildEncounter.start(species);
 };
 
-// Testen: ?debug in de url -> E start een encounter (?debug&species=mew voor een vaste soort).
+// Testen/demo: E start meteen een encounter (?species=mew in de url voor een vaste soort).
 const params = new URLSearchParams(window.location.search);
-if (params.has('debug')) {
-  window.addEventListener('keydown', (event) => {
-    if (event.code !== 'KeyE' || mode !== 'explore') return;
-    startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
-  });
-}
+window.addEventListener('keydown', (event) => {
+  const isE = event.code === 'KeyE' || event.key.toLowerCase() === 'e';
+  if (!isE || event.repeat || mode !== 'explore') return;
+  startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
+});
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -137,6 +175,7 @@ renderer.setAnimationLoop((time) => {
   if (mode === 'explore') {
     trainer.update(delta, input.update());
     followCamera.update(delta);
+    buddy.update(delta, trainer.group);
 
     const inTallGrass = isInTallGrass(trainer.group.position);
     hud.setGrassHint(inTallGrass);
@@ -147,8 +186,10 @@ renderer.setAnimationLoop((time) => {
     wildEncounter.update(delta);
   }
 
-  heart.mesh.visible = mode === 'explore';
-  heart.mesh.position.copy(trainer.group.position).y += HEART_HEIGHT;
+  // Buddy en hartje enkel tijdens rondlopen.
+  buddy.group.visible = mode === 'explore';
+  heart.mesh.visible = mode === 'explore' && buddy.hasBuddy();
+  if (heart.mesh.visible) buddy.getHeartPosition(heart.mesh.position);
   heart.update(delta, camera);
 
   // Zon volgt de trainer zodat de schaduwen scherp blijven.

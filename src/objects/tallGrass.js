@@ -49,14 +49,14 @@ const createGrassTransforms = (random) => {
   const extent = TALL_GRASS_PATCHES.limit + TALL_GRASS_PATCHES.blobSpread.max + TALL_GRASS_PATCHES.blobRadius.max;
   for (let x = -extent; x <= extent; x += TALL_GRASS_SPACING) {
     for (let z = -extent; z <= extent; z += TALL_GRASS_SPACING) {
-      const px = x + random.range(-0.4, 0.4);
-      const pz = z + random.range(-0.4, 0.4);
-      if (!insideBlob(px, pz, 0.6)) continue;
+      const px = x + random.range(-0.3, 0.3);
+      const pz = z + random.range(-0.3, 0.3);
+      if (!insideBlob(px, pz, 0.25)) continue;
       transforms.push({
         x: px,
         z: pz,
         rotation: random.range(0, Math.PI * 2),
-        scale: random.range(0.6, 0.85),
+        scale: random.range(0.55, 0.8),
       });
     }
   }

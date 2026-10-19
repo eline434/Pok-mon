@@ -40,6 +40,13 @@ export const createTeam = () => {
     return member;
   };
 
+  const updateMember = (uid, changes) => {
+    const member = state.team.find((m) => m.uid === uid);
+    if (!member) return;
+    Object.assign(member, changes);
+    save();
+  };
+
   const setBuddy = (uid) => {
     state.buddyUid = uid;
     save();
@@ -47,6 +54,7 @@ export const createTeam = () => {
 
   return {
     add,
+    updateMember,
     setBuddy,
     getMembers: () => state.team,
     getBuddy: () => state.team.find((member) => member.uid === state.buddyUid) ?? null,

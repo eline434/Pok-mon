@@ -15,3 +15,14 @@ export const CAMERA_SMOOTHING = 5;
 // Hoe lang de "pop" van het hartje duurt en hoe lang hij roze blijft (seconden).
 export const HEART_POP_DURATION = 0.67;
 export const HEART_HOLD_DURATION = 1.2;
+
+// Buddy volgt schuin achter de trainer.
+export const BUDDY_OFFSET = { side: 1.1, back: 1.2 };
+export const BUDDY_SPEED = 5.5;
+export const BUDDY_TURN_SPEED = 8;
+export const BUDDY_HEART_GAP = 0.5; // hartje zweeft zoveel boven de buddy
+
+// Aaien: per PET_STROKE_PIXELS slepen over de buddy stijgt happiness met PET_HAPPINESS (max 100).
+export const PET_STROKE_PIXELS = 220;
+export const PET_HAPPINESS = 4;
+export const PET_CLICK_HAPPINESS = 1;

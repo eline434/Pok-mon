@@ -14,7 +14,7 @@ export const TALL_GRASS_PATCHES = {
   minDistance: 8, // tussen de middens van twee velden
   limit: 27, // velden blijven binnen -limit..limit
 };
-export const TALL_GRASS_SPACING = 1.6;
+export const TALL_GRASS_SPACING = 1.15;
 
 // Decor-modellen: url + hoogte in meter (modellen worden hierop geschaald).
 export const MODELS = {

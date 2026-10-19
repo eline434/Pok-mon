@@ -7,6 +7,11 @@ export const createHud = (team) => {
   root.id = 'hud';
   root.innerHTML = `
     <button class="hud-button" id="team-button" type="button">Team <kbd>T</kbd></button>
+    <section id="buddy-status" hidden>
+      <p id="buddy-name"></p>
+      <div class="happiness" title="Happiness"><div id="buddy-happiness"></div></div>
+      <p class="buddy-tip">Sleep met de muis over je buddy om te aaien</p>
+    </section>
     <p id="grass-hint" hidden>Je loopt door hoog gras…</p>
     <section id="encounter-panel" hidden>
       <p id="encounter-text"></p>
@@ -28,6 +33,9 @@ export const createHud = (team) => {
   const encounterText = root.querySelector('#encounter-text');
   const encounterActions = root.querySelector('#encounter-actions');
   const teamPanel = root.querySelector('#team-panel');
+  const buddyStatus = root.querySelector('#buddy-status');
+  const buddyName = root.querySelector('#buddy-name');
+  const buddyHappiness = root.querySelector('#buddy-happiness');
   const teamList = root.querySelector('#team-list');
 
   // Encounter-paneel
@@ -54,6 +62,7 @@ export const createHud = (team) => {
     setActions([]);
     encounterPanel.hidden = false;
     teamButton.hidden = true;
+    buddyStatus.classList.add('is-hidden');
     grassHint.hidden = true;
     toggleTeam(false);
   };
@@ -61,6 +70,16 @@ export const createHud = (team) => {
   const hideEncounter = () => {
     encounterPanel.hidden = true;
     teamButton.hidden = false;
+    buddyStatus.classList.remove('is-hidden');
+  };
+
+  // Buddy-status linksboven (member = null -> verbergen).
+  const setBuddy = (member) => {
+    buddyStatus.hidden = !member;
+    if (!member) return;
+    const species = getSpecies(member.species);
+    buddyName.textContent = `${species.name} – lv. ${member.level}`;
+    buddyHappiness.style.width = `${member.happiness}%`;
   };
 
   // Team-menu
@@ -82,7 +101,7 @@ export const createHud = (team) => {
         const item = document.createElement('li');
 
         const info = document.createElement('span');
-        info.textContent = `${species.name} ${starsLabel(species.stars)} – lv. ${member.level}`;
+        info.textContent = `${species.name} ${starsLabel(species.stars)} – lv. ${member.level} – ♥ ${member.happiness}`;
 
         const button = document.createElement('button');
         button.type = 'button';
@@ -119,5 +138,5 @@ export const createHud = (team) => {
     grassHint.hidden = !visible || !encounterPanel.hidden;
   };
 
-  return { showEncounter, hideEncounter, setText, setActions, setGrassHint, toggleTeam };
+  return { showEncounter, hideEncounter, setText, setActions, setGrassHint, toggleTeam, setBuddy };
 };

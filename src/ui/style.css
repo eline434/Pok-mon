@@ -160,3 +160,56 @@ body {
 #team-list .team-empty {
   color: #555;
 }
+
+#buddy-status {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  width: 13rem;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid #1d2b1a;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+#buddy-status[hidden],
+#buddy-status.is-hidden {
+  display: none;
+}
+
+#buddy-name {
+  font-weight: 600;
+}
+
+.happiness {
+  height: 0.6rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  border: 1px solid #1d2b1a;
+  border-radius: 1rem;
+  background: #eee;
+}
+
+#buddy-happiness {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #f7a1c4, #e8457c);
+  transition: width 0.3s ease;
+}
+
+.buddy-tip {
+  margin-top: 0.35rem;
+  color: #555;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  #buddy-status {
+    width: auto;
+    right: 7.5rem;
+  }
+
+  .buddy-tip {
+    display: none;
+  }
+}
