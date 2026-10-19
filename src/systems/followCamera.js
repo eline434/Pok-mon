@@ -8,7 +8,8 @@ export const createFollowCamera = (camera, target) => {
 
   const snap = () => {
     camera.position.copy(target.position).add(offset);
-    camera.lookAt(target.position);
+    lookAt.copy(target.position).y += 1;
+    camera.lookAt(lookAt);
   };
 
   const update = (delta) => {
@@ -19,5 +20,5 @@ export const createFollowCamera = (camera, target) => {
   };
 
   snap();
-  return { update };
+  return { update, snap };
 };

@@ -7,7 +7,7 @@ import {
   BORDER_OUTER,
   TALL_GRASS_ZONES,
 } from '../constants/world.js';
-import { loadPrototype, createInstances } from './decor.js';
+import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
 
 const isFree = (x, z, margin, taken, minDistance) => {
   if (x * x + z * z < (SPAWN_CLEAR_RADIUS + margin) ** 2) return false;
@@ -43,6 +43,17 @@ const border = (random, count) => {
   return result;
 };
 
+// Hoe ver een model (bv. een groepje dennen) zich horizontaal uitstrekt vanaf zijn midden.
+const getFootprint = (parts) => {
+  let footprint = 0;
+  for (const { geometry } of parts) {
+    geometry.computeBoundingBox();
+    const { min, max } = geometry.boundingBox;
+    footprint = Math.max(footprint, Math.hypot(Math.max(-min.x, max.x), Math.max(-min.z, max.z)));
+  }
+  return footprint;
+};
+
 export const createScenery = async (random) => {
   const [tree, bush, flowerGroup, flowers, flower] = await Promise.all([
     loadPrototype(MODELS.tree),
@@ -64,14 +75,33 @@ export const createScenery = async (random) => {
   // Bloemen verdelen over de drie soorten.
   const third = Math.ceil(allFlowers.length / 3);
 
-  const group = new THREE.Group();
-  group.add(
-    createInstances(tree, trees, { castShadow: true }),
-    createInstances(bush, bushes, { castShadow: true }),
-    createInstances(flowerGroup, allFlowers.slice(0, third)),
-    createInstances(flowers, allFlowers.slice(third, third * 2)),
-    createInstances(flower, allFlowers.slice(third * 2)),
-  );
+  const layer = (parts, transforms, options) => ({
+    instances: createInstances(parts, transforms, options),
+    transforms,
+    footprint: getFootprint(parts),
+  });
 
-  return { group };
+  const layers = [
+    layer(tree, trees, { castShadow: true }),
+    layer(bush, bushes, { castShadow: true }),
+    layer(flowerGroup, allFlowers.slice(0, third)),
+    layer(flowers, allFlowers.slice(third, third * 2)),
+    layer(flower, allFlowers.slice(third * 2)),
+  ];
+
+  const group = new THREE.Group();
+  layers.forEach(({ instances }) => group.add(instances));
+
+  // Decor rond de gegeven punten verbergen (bv. bomen die een encounter in de weg staan).
+  const hideNear = (points, radius) => {
+    for (const { instances, transforms, footprint } of layers) {
+      writeInstanceMatrices(instances, transforms, ({ x, z, scale }) => {
+        const reach = radius + footprint * scale;
+        return points.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < reach * reach) ? 0 : 1;
+      });
+    }
+  };
+  const restore = () => layers.forEach(({ instances, transforms }) => writeInstanceMatrices(instances, transforms));
+
+  return { group, hideNear, restore };
 };

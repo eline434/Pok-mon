@@ -40,6 +40,20 @@ export const loadPrototype = async ({ url, height }) => {
   return parts;
 };
 
+// Schrijft de matrices van alle instances; scaleFactor(transform) kan een kopie kleiner maken.
+export const writeInstanceMatrices = (group, transforms, scaleFactor = () => 1) => {
+  for (const mesh of group.children) {
+    transforms.forEach((transform, i) => {
+      dummy.position.set(transform.x, 0, transform.z);
+      dummy.rotation.set(0, transform.rotation, 0);
+      dummy.scale.setScalar(transform.scale * scaleFactor(transform));
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }
+};
+
 // Eén InstancedMesh per onderdeel: veel kopieën in weinig draw calls.
 // transforms: [{ x, z, rotation, scale }]
 export const createInstances = (parts, transforms, { castShadow = false, receiveShadow = true } = {}) => {
@@ -47,18 +61,12 @@ export const createInstances = (parts, transforms, { castShadow = false, receive
 
   for (const { geometry, material } of parts) {
     const mesh = new THREE.InstancedMesh(geometry, material, transforms.length);
-    transforms.forEach(({ x, z, rotation, scale }, i) => {
-      dummy.position.set(x, 0, z);
-      dummy.rotation.set(0, rotation, 0);
-      dummy.scale.setScalar(scale);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    });
     mesh.castShadow = castShadow;
     mesh.receiveShadow = receiveShadow;
-    mesh.computeBoundingSphere();
     group.add(mesh);
   }
 
+  writeInstanceMatrices(group, transforms);
+  group.children.forEach((mesh) => mesh.computeBoundingSphere());
   return group;
 };

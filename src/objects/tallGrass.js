@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { TALL_GRASS_ZONES, TALL_GRASS_SPACING, MODELS } from '../constants/world.js';
 import { TALL_GRASS_GROUND_COLOR } from '../constants/colors.js';
-import { loadPrototype, createInstances } from './decor.js';
+import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
 
 // Plukken gras op een verschoven raster binnen elke cirkelvormige zone.
 const createGrassTransforms = (random) => {
@@ -39,9 +39,19 @@ export const createTallGrass = async (random) => {
   }
 
   const grass = await loadPrototype(MODELS.grass);
-  group.add(createInstances(grass, createGrassTransforms(random)));
+  const transforms = createGrassTransforms(random);
+  const instances = createInstances(grass, transforms);
+  group.add(instances);
 
-  return { group };
+  // Gras rond de gegeven punten plat leggen (bv. tijdens een encounter), zodat je de pokémon ziet.
+  const flatten = (points, radius) => {
+    writeInstanceMatrices(instances, transforms, ({ x, z }) =>
+      points.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < radius * radius) ? 0.15 : 1,
+    );
+  };
+  const restore = () => writeInstanceMatrices(instances, transforms);
+
+  return { group, flatten, restore };
 };
 
 // Staat een positie in hoog gras? (gebruikt voor encounters)
