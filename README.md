@@ -2,7 +2,7 @@
 
 > Instructieplan voor mezelf én de AI-agent. Dit bestand is ook de README van het project.
 
-**Originele Shadertoy shader(s):** aaien van pokemon:https://www.shadertoy.com/view/Wsj3R1   start van gevecht:https://www.shadertoy.com/view/Wsj3R1  wanneer pokemon gevangen:https://www.shadertoy.com/view/7sjfRy
+**Originele Shadertoy shader(s):** aaien van pokemon:https://www.shadertoy.com/view/Wsj3R1   start van gevecht:https://www.shadertoy.com/view/wsfcDM  wanneer pokemon gevangen:https://www.shadertoy.com/view/7sjfRy
 
 **Live demo:** https://eline434.github.io/Pok-mon/
 **Broncode:** [https://github.com/eline434/Pok-mon.git]
@@ -129,7 +129,7 @@ Vink af per stap. Elke fase eindigt met een **deploy**.
 - [x] `npm init -y`, `npm install three`, `npm install -D vite`, dev-script
 - [x] `index.html` met fullscreen canvas, `src/main.js` met WebGPURenderer + camera + scene + licht
 - [x] Eenvoudige test-cube die draait
-- [ ] **Deployen** (Vercel/Netlify/GitHub Pages; bij GitHub Pages `base` in `vite.config.js` zetten) en live url in README zetten
+- [x] **Deployen** (Vercel/Netlify/GitHub Pages; bij GitHub Pages `base` in `vite.config.js` zetten) en live url in README zetten
 - [ ] Testen in Chrome **en** controleren dat de WebGL2-fallback niet crasht
 
 ### Fase 1 – Veld, trainer & eerste shader (MVP)
