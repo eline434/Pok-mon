@@ -1,42 +1,48 @@
 import * as THREE from 'three/webgpu';
-import { TRAINER_SPEED, TRAINER_TURN_SPEED, FIELD_SIZE } from '../constants/config.js';
-import { TRAINER_BODY_COLOR, TRAINER_HEAD_COLOR } from '../constants/colors.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {
+  TRAINER_MODEL_URL,
+  TRAINER_HEIGHT,
+  TRAINER_MODEL_ROTATION,
+  TRAINER_SPEED,
+  TRAINER_TURN_SPEED,
+  FIELD_SIZE,
+} from '../constants/config.js';
 
-// Tijdelijk figuurtje tot er een echt trainer-model (GLB) is.
-const createPlaceholder = () => {
-  const group = new THREE.Group();
+// Laadt het GLB-model en schaalt het naar TRAINER_HEIGHT, met de voeten op y = 0.
+const loadModel = async () => {
+  const gltf = await new GLTFLoader().loadAsync(TRAINER_MODEL_URL);
+  const model = gltf.scene;
 
-  const body = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.3, 0.7, 4, 12),
-    new THREE.MeshStandardNodeMaterial({ color: TRAINER_BODY_COLOR }),
-  );
-  body.position.y = 0.65;
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  model.scale.multiplyScalar(TRAINER_HEIGHT / size.y);
 
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 16, 12),
-    new THREE.MeshStandardNodeMaterial({ color: TRAINER_HEAD_COLOR }),
-  );
-  head.position.y = 1.35;
+  box.setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  model.position.set(-center.x, -box.min.y, -center.z);
 
-  // Neusje zodat je ziet welke kant de trainer op kijkt.
-  const nose = new THREE.Mesh(
-    new THREE.SphereGeometry(0.05, 8, 6),
-    new THREE.MeshStandardNodeMaterial({ color: TRAINER_BODY_COLOR }),
-  );
-  nose.position.set(0, 1.35, 0.22);
-
-  group.add(body, head, nose);
-  group.traverse((child) => {
+  model.traverse((child) => {
     if (child.isMesh) child.castShadow = true;
   });
-  return { group, body };
+
+  // Extra laag zodat we het model kunnen draaien/laten wippen los van de positie.
+  const pivot = new THREE.Group();
+  pivot.rotation.y = TRAINER_MODEL_ROTATION;
+  pivot.add(model);
+  return pivot;
 };
 
-export const createTrainer = () => {
-  const { group, body } = createPlaceholder();
+export const createTrainer = async () => {
+  const group = new THREE.Group();
+  const body = new THREE.Group(); // procedurele animatie (bob/lean) zit op deze laag
+  body.add(await loadModel());
+  group.add(body);
+
   const direction = new THREE.Vector3();
   const limit = FIELD_SIZE / 2 - 1;
   let walkTime = 0;
+  let walkAmount = 0; // 0 = stilstaan, 1 = lopen (vloeiend)
 
   const update = (delta, input) => {
     direction.set(input.x, 0, input.z);
@@ -53,12 +59,18 @@ export const createTrainer = () => {
       let diff = targetAngle - group.rotation.y;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
       group.rotation.y += diff * Math.min(1, TRAINER_TURN_SPEED * delta);
-
-      walkTime += delta;
     }
 
-    // Simpele loop-bob in plaats van een animatie.
-    body.position.y = 0.65 + (moving ? Math.abs(Math.sin(walkTime * 10)) * 0.08 : 0);
+    walkAmount = THREE.MathUtils.damp(walkAmount, moving ? 1 : 0, 10, delta);
+    walkTime += delta;
+
+    // Procedurele animatie: het model heeft geen skelet/clips.
+    const step = walkTime * 10;
+    const breathe = Math.sin(walkTime * 2) * 0.01 * (1 - walkAmount);
+    body.position.y = Math.abs(Math.sin(step)) * 0.08 * walkAmount;
+    body.rotation.z = Math.sin(step) * 0.06 * walkAmount;
+    body.rotation.x = 0.08 * walkAmount;
+    body.scale.y = 1 + breathe;
   };
 
   return { group, update };

@@ -47,7 +47,7 @@ scene.add(sun, sun.target);
 const field = createField();
 scene.add(field.mesh);
 
-const trainer = createTrainer();
+const trainer = await createTrainer();
 scene.add(trainer.group);
 
 // Hartje zweeft voorlopig boven de trainer; in Fase 2 verhuist het naar de pokémon.
