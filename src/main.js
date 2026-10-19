@@ -272,10 +272,10 @@ renderer.setAnimationLoop((time) => {
     training.update(delta);
   }
 
-  // Buddy en hartje enkel tijdens rondlopen.
+  // Buddy enkel tijdens rondlopen, hartje enkel net na het aaien.
   buddy.group.visible = mode === 'explore';
-  heart.mesh.visible = mode === 'explore' && buddy.hasBuddy();
-  if (heart.mesh.visible) buddy.getHeartPosition(heart.mesh.position);
+  heart.mesh.visible = mode === 'explore' && buddy.hasBuddy() && heart.isActive();
+  if (buddy.hasBuddy()) buddy.getHeartPosition(heart.mesh.position);
   heart.update(delta, camera);
 
   // Zon volgt de trainer (of de arena tijdens het trainen) zodat de schaduwen scherp blijven.

@@ -23,7 +23,8 @@ export const createHeart = () => {
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
   mesh.name = 'heart';
 
-  let popTime = -1; // -1 = in rust
+  let popTime = -1; // -1 = niet zichtbaar
+  const GROW = 0.15; // seconden om te verschijnen / te verdwijnen
 
   const pop = () => {
     popTime = 0;
@@ -42,11 +43,19 @@ export const createHeart = () => {
     popTime += delta;
     uProgress.value = Math.min(popTime / HEART_POP_DURATION, 1);
 
-    if (popTime > HEART_POP_DURATION + HEART_HOLD_DURATION) {
+    // Groeit uit het niets en krimpt weg op het einde.
+    const total = HEART_POP_DURATION + HEART_HOLD_DURATION;
+    const scale = Math.min(popTime / GROW, (total - popTime) / GROW, 1);
+    mesh.scale.setScalar(Math.max(scale, 0.001));
+
+    if (popTime > total) {
       popTime = -1;
       uProgress.value = 0;
     }
   };
 
-  return { mesh, pop, setHappiness, update, uniforms: { uProgress, uHappiness, uTime } };
+  // Enkel zichtbaar tijdens een pop (na aaien of een level-up).
+  const isActive = () => popTime >= 0;
+
+  return { mesh, pop, setHappiness, isActive, update, uniforms: { uProgress, uHappiness, uTime } };
 };
