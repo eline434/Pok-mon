@@ -64,11 +64,15 @@ export const createBuddy = () => {
 
   const react = () => pokemon?.react();
 
+  // Groter met level (visuele feedback van trainen).
+  const setScale = (scale) => pokemon?.root.scale.setScalar(scale);
+
   // Positie voor het hartje: net boven de buddy.
   const getHeartPosition = (out) => {
     const { species } = pokemon;
-    return out.copy(pokemon.root.position).setY(species.hover + species.height + BUDDY_HEART_GAP);
+    const scale = pokemon.root.scale.y;
+    return out.copy(pokemon.root.position).setY((species.hover + species.height) * scale + BUDDY_HEART_GAP);
   };
 
-  return { group, setMember, update, react, getHeartPosition, hasBuddy: () => pokemon !== null };
+  return { group, setMember, setScale, update, react, getHeartPosition, hasBuddy: () => pokemon !== null };
 };

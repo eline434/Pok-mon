@@ -22,7 +22,32 @@ export const BUDDY_SPEED = 5.5;
 export const BUDDY_TURN_SPEED = 8;
 export const BUDDY_HEART_GAP = 0.5; // hartje zweeft zoveel boven de buddy
 
-// Aaien: per PET_STROKE_PIXELS slepen over de buddy stijgt happiness met PET_HAPPINESS (max 100).
+// Aaien: kan om de PET_COOLDOWN seconden. Zoveel pixels over de buddy slepen = één aai.
+export const PET_COOLDOWN = 30;
 export const PET_STROKE_PIXELS = 220;
-export const PET_HAPPINESS = 4;
-export const PET_CLICK_HAPPINESS = 1;
+export const PET_HAPPINESS = 10; // max 100
+export const PET_XP = 3;
+
+// Wandelen met je buddy: elke WALK_XP_INTERVAL seconden lopen = WALK_XP.
+export const WALK_XP_INTERVAL = 10;
+export const WALK_XP = 1;
+
+// Levelen: XP nodig voor het volgende level = XP_BASE + XP_PER_LEVEL * level.
+export const XP_BASE = 5;
+export const XP_PER_LEVEL = 4;
+export const MAX_LEVEL = 100;
+
+// Trainen: ballen ontwijken.
+export const TRAINING = {
+  duration: 30, // seconden
+  lives: 3,
+  xpPerDodge: 2,
+  surviveBonus: 5,
+  happiness: 5,
+  ballSize: 0.5, // diameter in meter
+  ballSpeed: { start: 5, perSecond: 0.15 },
+  spawnInterval: { start: 1.8, end: 0.9 }, // seconden tussen ballen (begin -> einde)
+  jumpSpeed: 7.5,
+  gravity: 22,
+  arenaPosition: { x: 0, z: -140 }, // buiten het veld, uit het zicht
+};

@@ -65,10 +65,17 @@ body {
   font-size: 0.8em;
 }
 
-#team-button {
+#hud-buttons {
   position: fixed;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+#train-button.is-hidden,
+#train-button[hidden] {
+  display: none;
 }
 
 #grass-hint {
@@ -181,35 +188,77 @@ body {
   font-weight: 600;
 }
 
-.happiness {
-  height: 0.6rem;
+.bar-label {
   margin-top: 0.35rem;
+  color: #555;
+  font-size: 12px;
+}
+
+.bar {
+  height: 0.6rem;
   overflow: hidden;
   border: 1px solid #1d2b1a;
   border-radius: 1rem;
   background: #eee;
 }
 
-#buddy-happiness {
+.bar > div {
   width: 0;
   height: 100%;
-  background: linear-gradient(90deg, #f7a1c4, #e8457c);
   transition: width 0.3s ease;
 }
 
-.buddy-tip {
-  margin-top: 0.35rem;
+#buddy-happiness {
+  background: linear-gradient(90deg, #f7a1c4, #e8457c);
+}
+
+#buddy-xp {
+  background: linear-gradient(90deg, #9fd4f0, #3a8fd1);
+}
+
+#pet-status {
+  margin-top: 0.45rem;
   color: #555;
   font-size: 12px;
 }
 
+#pet-status.is-ready {
+  color: #c2185b;
+  font-weight: 600;
+}
+
+#training-stats,
+#toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 1rem;
+  border-radius: 1rem;
+  white-space: pre;
+}
+
+#training-stats {
+  top: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #1d2b1a;
+  font-weight: 600;
+}
+
+#toast {
+  top: 3.5rem;
+  background: #1d2b1a;
+  color: #fff;
+  font-weight: 600;
+}
+
+#training-stats[hidden],
+#toast[hidden] {
+  display: none;
+}
+
 @media (max-width: 600px) {
   #buddy-status {
-    width: auto;
-    right: 7.5rem;
-  }
-
-  .buddy-tip {
-    display: none;
+    top: 4rem;
+    width: 11rem;
   }
 }

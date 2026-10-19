@@ -20,7 +20,18 @@ import { createHud } from './ui/hud.js';
 import { getSpecies } from './constants/pokemon.js';
 import { updateTweens } from './utils/tween.js';
 import { createBuddy } from './objects/buddy.js';
-import { PET_STROKE_PIXELS, PET_HAPPINESS, PET_CLICK_HAPPINESS } from './constants/config.js';
+import {
+  PET_COOLDOWN,
+  PET_STROKE_PIXELS,
+  PET_HAPPINESS,
+  PET_XP,
+  WALK_XP_INTERVAL,
+  WALK_XP,
+  TRAINING,
+} from './constants/config.js';
+import { applyXp, levelScale } from './systems/progression.js';
+import { createArena } from './objects/arena.js';
+import { createTraining } from './systems/training.js';
 
 const canvas = document.querySelector('#app');
 const message = document.querySelector('#message');
@@ -70,7 +81,8 @@ const [trainer, tallGrass, scenery] = await Promise.all([
   loadPokemonModels(),
   loadPokeballModel(),
 ]);
-scene.add(trainer.group, tallGrass.group, scenery.group);
+const arena = createArena();
+scene.add(trainer.group, tallGrass.group, scenery.group, arena.group);
 
 // Buddy (gekozen pokémon uit je team) met het aai-hartje erboven.
 const buddy = createBuddy();
@@ -84,37 +96,72 @@ const input = createInput();
 const followCamera = createFollowCamera(camera, trainer.group);
 const transition = createTransition();
 const team = createTeam();
-const hud = createHud(team);
+const hud = createHud(team, { onTrain: () => startTraining() });
 
-// Aaien: happiness van de buddy verhogen, hartje laten poppen, buddy reageert.
-const pet = (amount) => {
+// XP geven aan de buddy (aaien, wandelen, trainen) + level-up melding.
+const giveXp = (amount, extra = {}) => {
   const member = team.getBuddy();
   if (!member) return;
-  team.updateMember(member.uid, { happiness: Math.min(100, member.happiness + amount) });
-  heart.pop();
-  buddy.react();
+  const result = applyXp(member, amount);
+  team.updateMember(member.uid, { level: result.level, xp: result.xp, ...extra });
+  if (result.gained > 0) {
+    hud.toast(`${getSpecies(member.species).name} is nu level ${result.level}!`);
+    heart.pop();
+    buddy.react();
+  }
+};
+
+// Aaien kan om de PET_COOLDOWN seconden (tijdstip staat in de save, dus ook na herladen).
+const petCooldownLeft = () => {
+  const member = team.getBuddy();
+  if (!member?.lastPetAt) return 0;
+  return Math.max(0, Math.ceil(PET_COOLDOWN - (Date.now() - member.lastPetAt) / 1000));
 };
 
 let strokePixels = 0;
+
+const tryPet = () => {
+  const wait = petCooldownLeft();
+  if (wait > 0) {
+    hud.toast(`Je kan je buddy over ${wait}s weer aaien.`, 1500);
+    return false;
+  }
+  return true;
+};
+
+const completePet = () => {
+  const member = team.getBuddy();
+  if (!member || petCooldownLeft() > 0) return;
+  heart.pop();
+  buddy.react();
+  hud.toast(`+${PET_XP} XP – ${getSpecies(member.species).name} vindt het fijn!`, 1800);
+  giveXp(PET_XP, { happiness: Math.min(100, member.happiness + PET_HAPPINESS), lastPetAt: Date.now() });
+};
+
 const pointer = createPointer(canvas, camera, [
   {
     object: buddy.group,
     cursor: 'grab',
-    onClick: () => pet(PET_CLICK_HAPPINESS),
+    onClick: () => {
+      strokePixels = 0;
+      tryPet();
+    },
     onStroke: (pixels) => {
+      if (petCooldownLeft() > 0) return;
       strokePixels += pixels;
-      while (strokePixels >= PET_STROKE_PIXELS) {
-        strokePixels -= PET_STROKE_PIXELS;
-        pet(PET_HAPPINESS);
+      if (strokePixels >= PET_STROKE_PIXELS) {
+        strokePixels = 0;
+        completePet();
       }
     },
   },
-  { object: heart.mesh, onClick: () => pet(PET_CLICK_HAPPINESS) },
+  { object: heart.mesh, onClick: tryPet },
 ]);
 
 const syncBuddy = () => {
   const member = team.getBuddy();
   buddy.setMember(member, trainer.group);
+  if (member) buddy.setScale(levelScale(member.level));
   heart.setHappiness(member ? member.happiness / 100 : 0);
   hud.setBuddy(member);
 };
@@ -122,8 +169,9 @@ team.onChange(syncBuddy);
 syncBuddy();
 const encounterChecker = createEncounterChecker(trainer.group.position);
 
-// 'explore' = rondlopen, 'encounter' = wilde pokémon (geen besturing).
+// 'explore' = rondlopen, 'encounter' = wilde pokémon, 'training' = ballen ontwijken.
 let mode = 'explore';
+let walkTime = 0;
 const NO_INPUT = { x: 0, z: 0 };
 
 const wildEncounter = createWildEncounter({
@@ -143,6 +191,31 @@ const wildEncounter = createWildEncounter({
   },
 });
 
+const training = createTraining({
+  scene,
+  camera,
+  arena,
+  transition,
+  hud,
+  onEnd: (member, xp) => {
+    mode = 'explore';
+    pointer.setEnabled(true);
+    followCamera.snap();
+    const current = team.getMembers().find((m) => m.uid === member.uid);
+    if (current?.uid === team.getBuddy()?.uid) {
+      giveXp(xp, { happiness: Math.min(100, current.happiness + TRAINING.happiness) });
+    }
+  },
+});
+
+const startTraining = () => {
+  const member = team.getBuddy();
+  if (!member || mode !== 'explore') return;
+  mode = 'training';
+  pointer.setEnabled(false);
+  training.start(member);
+};
+
 const startEncounter = (species) => {
   mode = 'encounter';
   pointer.setEnabled(false);
@@ -152,9 +225,10 @@ const startEncounter = (species) => {
 // Testen/demo: E start meteen een encounter (?species=mew in de url voor een vaste soort).
 const params = new URLSearchParams(window.location.search);
 window.addEventListener('keydown', (event) => {
-  const isE = event.code === 'KeyE' || event.key.toLowerCase() === 'e';
-  if (!isE || event.repeat || mode !== 'explore') return;
-  startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
+  if (event.repeat || mode !== 'explore') return;
+  const key = event.key.toLowerCase();
+  if (event.code === 'KeyE' || key === 'e') startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
+  if (event.code === 'KeyR' || key === 'r') startTraining();
 });
 
 window.addEventListener('resize', () => {
@@ -173,9 +247,20 @@ renderer.setAnimationLoop((time) => {
   transition.update(delta);
 
   if (mode === 'explore') {
-    trainer.update(delta, input.update());
+    const movement = input.update();
+    trainer.update(delta, movement);
     followCamera.update(delta);
     buddy.update(delta, trainer.group);
+
+    // Wandelen met je buddy levert XP op.
+    if (buddy.hasBuddy() && (movement.x !== 0 || movement.z !== 0)) {
+      walkTime += delta;
+      if (walkTime >= WALK_XP_INTERVAL) {
+        walkTime -= WALK_XP_INTERVAL;
+        giveXp(WALK_XP);
+      }
+    }
+    hud.setPetCooldown(petCooldownLeft());
 
     const inTallGrass = isInTallGrass(trainer.group.position);
     hud.setGrassHint(inTallGrass);
@@ -184,6 +269,7 @@ renderer.setAnimationLoop((time) => {
   } else {
     trainer.update(delta, NO_INPUT);
     wildEncounter.update(delta);
+    training.update(delta);
   }
 
   // Buddy en hartje enkel tijdens rondlopen.
@@ -192,9 +278,10 @@ renderer.setAnimationLoop((time) => {
   if (heart.mesh.visible) buddy.getHeartPosition(heart.mesh.position);
   heart.update(delta, camera);
 
-  // Zon volgt de trainer zodat de schaduwen scherp blijven.
-  sun.position.copy(trainer.group.position).add(SUN_OFFSET);
-  sun.target.position.copy(trainer.group.position);
+  // Zon volgt de trainer (of de arena tijdens het trainen) zodat de schaduwen scherp blijven.
+  const focus = mode === 'training' ? arena.group.position : trainer.group.position;
+  sun.position.copy(focus).add(SUN_OFFSET);
+  sun.target.position.copy(focus);
 
   renderer.render(scene, camera);
 

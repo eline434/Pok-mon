@@ -1,17 +1,27 @@
 import { getSpecies } from '../constants/pokemon.js';
+import { xpToNextLevel } from '../systems/progression.js';
 
 const starsLabel = (stars) => (stars > 0 ? '★'.repeat(stars) : '');
 
-export const createHud = (team) => {
+// onTrain: wordt opgeroepen bij klik op "Trainen" (de R-toets regelt main.js).
+export const createHud = (team, { onTrain } = {}) => {
   const root = document.createElement('div');
   root.id = 'hud';
   root.innerHTML = `
-    <button class="hud-button" id="team-button" type="button">Team <kbd>T</kbd></button>
+    <div id="hud-buttons">
+      <button class="hud-button" id="train-button" type="button" hidden>Trainen <kbd>R</kbd></button>
+      <button class="hud-button" id="team-button" type="button">Team <kbd>T</kbd></button>
+    </div>
     <section id="buddy-status" hidden>
       <p id="buddy-name"></p>
-      <div class="happiness" title="Happiness"><div id="buddy-happiness"></div></div>
-      <p class="buddy-tip">Sleep met de muis over je buddy om te aaien</p>
+      <p class="bar-label">Happiness</p>
+      <div class="bar happiness"><div id="buddy-happiness"></div></div>
+      <p class="bar-label">XP <span id="buddy-xp-text"></span></p>
+      <div class="bar xp"><div id="buddy-xp"></div></div>
+      <p id="pet-status"></p>
     </section>
+    <p id="training-stats" hidden></p>
+    <p id="toast" hidden></p>
     <p id="grass-hint" hidden>Je loopt door hoog gras…</p>
     <section id="encounter-panel" hidden>
       <p id="encounter-text"></p>
@@ -36,6 +46,12 @@ export const createHud = (team) => {
   const buddyStatus = root.querySelector('#buddy-status');
   const buddyName = root.querySelector('#buddy-name');
   const buddyHappiness = root.querySelector('#buddy-happiness');
+  const buddyXp = root.querySelector('#buddy-xp');
+  const buddyXpText = root.querySelector('#buddy-xp-text');
+  const petStatus = root.querySelector('#pet-status');
+  const trainButton = root.querySelector('#train-button');
+  const trainingStats = root.querySelector('#training-stats');
+  const toastElement = root.querySelector('#toast');
   const teamList = root.querySelector('#team-list');
 
   // Encounter-paneel
@@ -62,6 +78,7 @@ export const createHud = (team) => {
     setActions([]);
     encounterPanel.hidden = false;
     teamButton.hidden = true;
+    trainButton.classList.add('is-hidden');
     buddyStatus.classList.add('is-hidden');
     grassHint.hidden = true;
     toggleTeam(false);
@@ -70,16 +87,46 @@ export const createHud = (team) => {
   const hideEncounter = () => {
     encounterPanel.hidden = true;
     teamButton.hidden = false;
+    trainButton.classList.remove('is-hidden');
     buddyStatus.classList.remove('is-hidden');
   };
 
   // Buddy-status linksboven (member = null -> verbergen).
   const setBuddy = (member) => {
     buddyStatus.hidden = !member;
+    trainButton.hidden = !member;
     if (!member) return;
     const species = getSpecies(member.species);
+    const needed = xpToNextLevel(member.level);
     buddyName.textContent = `${species.name} – lv. ${member.level}`;
     buddyHappiness.style.width = `${member.happiness}%`;
+    buddyXp.style.width = `${(member.xp / needed) * 100}%`;
+    buddyXpText.textContent = `${member.xp}/${needed}`;
+  };
+
+  // Aai-timer: 0 = je kan aaien, anders aantal seconden wachten.
+  let lastPetSeconds = null;
+  const setPetCooldown = (seconds) => {
+    if (seconds === lastPetSeconds) return;
+    lastPetSeconds = seconds;
+    petStatus.textContent = seconds > 0 ? `Aaien kan over ${seconds}s` : 'Sleep over je buddy om te aaien!';
+    petStatus.classList.toggle('is-ready', seconds === 0);
+  };
+
+  // Score tijdens het trainen (null = verbergen).
+  const setTrainingStats = (stats) => {
+    trainingStats.hidden = !stats;
+    if (!stats) return;
+    trainingStats.textContent = `Levens: ${'♥'.repeat(stats.lives)}${'♡'.repeat(Math.max(0, 3 - stats.lives))}   ·   Ontweken: ${stats.dodged}   ·   ${stats.timeLeft}s`;
+  };
+
+  // Korte melding bovenaan (bv. level up).
+  let toastTimeout = null;
+  const toast = (text, duration = 2500) => {
+    toastElement.textContent = text;
+    toastElement.hidden = false;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => (toastElement.hidden = true), duration);
   };
 
   // Team-menu
@@ -125,6 +172,7 @@ export const createHud = (team) => {
   };
 
   teamButton.addEventListener('click', () => toggleTeam());
+  trainButton.addEventListener('click', () => onTrain?.());
   root.querySelector('#team-close').addEventListener('click', () => toggleTeam(false));
   window.addEventListener('keydown', (event) => {
     if (event.code === 'KeyT') toggleTeam();
@@ -138,5 +186,16 @@ export const createHud = (team) => {
     grassHint.hidden = !visible || !encounterPanel.hidden;
   };
 
-  return { showEncounter, hideEncounter, setText, setActions, setGrassHint, toggleTeam, setBuddy };
+  return {
+    showEncounter,
+    hideEncounter,
+    setText,
+    setActions,
+    setGrassHint,
+    toggleTeam,
+    setBuddy,
+    setPetCooldown,
+    setTrainingStats,
+    toast,
+  };
 };
