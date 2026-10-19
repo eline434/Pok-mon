@@ -130,14 +130,14 @@ Vink af per stap. Elke fase eindigt met een **deploy**.
 - [x] `index.html` met fullscreen canvas, `src/main.js` met WebGPURenderer + camera + scene + licht
 - [x] Eenvoudige test-cube die draait
 - [x] **Deployen** (Vercel/Netlify/GitHub Pages; bij GitHub Pages `base` in `vite.config.js` zetten) en live url in README zetten
-- [ ] Testen in Chrome **en** controleren dat de WebGL2-fallback niet crasht
+- [x] Testen in Chrome **en** controleren dat de WebGL2-fallback niet crasht
 
 ### Fase 1 – Veld, trainer & eerste shader (MVP)
-- [ ] Vlak veld (grond) met mist/hemelkleur, lichten, schaduwen
+- [x] Vlak veld (grond) met mist/hemelkleur, lichten, schaduwen
 - [ ] Trainer-model laden (GLB) + Mixamo idle/walk via `AnimationMixer`
-- [ ] Besturing: WASD/pijltjes (+ evt. klik-om-te-lopen), camera die de trainer volgt
-- [ ] Gekozen Shadertoy-shader porteren (§4) en op een mesh zetten
-- [ ] Shader reageert op muis (`iMouse`) of speler-positie
+- [x] Besturing: WASD/pijltjes (+ evt. klik-om-te-lopen), camera die de trainer volgt
+- [x] Gekozen Shadertoy-shader porteren (§4) en op een mesh zetten
+- [x] Shader reageert op muis (`iMouse`) of speler-positie
 - [ ] README invullen met **Shadertoy-URL**, commit, deploy
 
 ### Fase 2 – Pokémon meenemen & aaien
