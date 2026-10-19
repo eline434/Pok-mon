@@ -1,10 +1,18 @@
+import { maxHp } from './progression.js';
+
 // Gevangen pokémon + gekozen buddy, opgeslagen in localStorage.
 const STORAGE_KEY = 'pokemon-field-save';
 
 const load = () => {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (data && Array.isArray(data.team)) return data;
+    if (data && Array.isArray(data.team)) {
+      // Oudere saves hebben nog geen HP: begin met volle HP.
+      data.team.forEach((member) => {
+        member.hp ??= maxHp(member.level);
+      });
+      return data;
+    }
   } catch {
     // geen of kapotte save: opnieuw beginnen
   }
@@ -30,6 +38,7 @@ export const createTeam = () => {
       species: species.id,
       level,
       xp: 0,
+      hp: maxHp(level),
       happiness: 0,
       caughtAt: Date.now(),
     };

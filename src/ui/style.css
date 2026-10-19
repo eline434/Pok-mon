@@ -208,8 +208,12 @@ body {
   transition: width 0.3s ease;
 }
 
-#buddy-happiness {
-  background: linear-gradient(90deg, #f7a1c4, #e8457c);
+#buddy-hp {
+  background: linear-gradient(90deg, #7bd36b, #3e9b3a);
+}
+
+#buddy-hp.is-low {
+  background: linear-gradient(90deg, #f28b6b, #d6382b);
 }
 
 #buddy-xp {

@@ -1,5 +1,5 @@
 import { getSpecies } from '../constants/pokemon.js';
-import { xpToNextLevel } from '../systems/progression.js';
+import { xpToNextLevel, maxHp } from '../systems/progression.js';
 
 const starsLabel = (stars) => (stars > 0 ? '★'.repeat(stars) : '');
 
@@ -14,8 +14,8 @@ export const createHud = (team, { onTrain } = {}) => {
     </div>
     <section id="buddy-status" hidden>
       <p id="buddy-name"></p>
-      <p class="bar-label">Happiness</p>
-      <div class="bar happiness"><div id="buddy-happiness"></div></div>
+      <p class="bar-label">HP <span id="buddy-hp-text"></span></p>
+      <div class="bar hp"><div id="buddy-hp"></div></div>
       <p class="bar-label">XP <span id="buddy-xp-text"></span></p>
       <div class="bar xp"><div id="buddy-xp"></div></div>
       <p id="pet-status"></p>
@@ -45,7 +45,8 @@ export const createHud = (team, { onTrain } = {}) => {
   const teamPanel = root.querySelector('#team-panel');
   const buddyStatus = root.querySelector('#buddy-status');
   const buddyName = root.querySelector('#buddy-name');
-  const buddyHappiness = root.querySelector('#buddy-happiness');
+  const buddyHp = root.querySelector('#buddy-hp');
+  const buddyHpText = root.querySelector('#buddy-hp-text');
   const buddyXp = root.querySelector('#buddy-xp');
   const buddyXpText = root.querySelector('#buddy-xp-text');
   const petStatus = root.querySelector('#pet-status');
@@ -99,7 +100,10 @@ export const createHud = (team, { onTrain } = {}) => {
     const species = getSpecies(member.species);
     const needed = xpToNextLevel(member.level);
     buddyName.textContent = `${species.name} – lv. ${member.level}`;
-    buddyHappiness.style.width = `${member.happiness}%`;
+    const max = maxHp(member.level);
+    buddyHp.style.width = `${(member.hp / max) * 100}%`;
+    buddyHp.classList.toggle('is-low', member.hp / max < 0.3);
+    buddyHpText.textContent = `${member.hp}/${max}`;
     buddyXp.style.width = `${(member.xp / needed) * 100}%`;
     buddyXpText.textContent = `${member.xp}/${needed}`;
   };
@@ -148,7 +152,7 @@ export const createHud = (team, { onTrain } = {}) => {
         const item = document.createElement('li');
 
         const info = document.createElement('span');
-        info.textContent = `${species.name} ${starsLabel(species.stars)} – lv. ${member.level} – ♥ ${member.happiness}`;
+        info.textContent = `${species.name} ${starsLabel(species.stars)} – lv. ${member.level} – ♥ ${member.hp}/${maxHp(member.level)}`;
 
         const button = document.createElement('button');
         button.type = 'button';

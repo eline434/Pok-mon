@@ -25,11 +25,12 @@ import {
   PET_STROKE_PIXELS,
   PET_HAPPINESS,
   PET_XP,
+  PET_HEAL_FRACTION,
   WALK_XP_INTERVAL,
   WALK_XP,
   TRAINING,
 } from './constants/config.js';
-import { applyXp, levelScale } from './systems/progression.js';
+import { applyXp, levelScale, maxHp } from './systems/progression.js';
 import { createArena } from './objects/arena.js';
 import { createTraining } from './systems/training.js';
 
@@ -103,7 +104,7 @@ const giveXp = (amount, extra = {}) => {
   const member = team.getBuddy();
   if (!member) return;
   const result = applyXp(member, amount);
-  team.updateMember(member.uid, { level: result.level, xp: result.xp, ...extra });
+  team.updateMember(member.uid, { level: result.level, xp: result.xp, hp: result.hp, ...extra });
   if (result.gained > 0) {
     hud.toast(`${getSpecies(member.species).name} is nu level ${result.level}!`);
     heart.pop();
@@ -134,8 +135,21 @@ const completePet = () => {
   if (!member || petCooldownLeft() > 0) return;
   heart.pop();
   buddy.react();
-  hud.toast(`+${PET_XP} XP – ${getSpecies(member.species).name} vindt het fijn!`, 1800);
-  giveXp(PET_XP, { happiness: Math.min(100, member.happiness + PET_HAPPINESS), lastPetAt: Date.now() });
+  const name = getSpecies(member.species).name;
+  const happiness = Math.min(100, member.happiness + PET_HAPPINESS);
+  const max = maxHp(member.level);
+
+  // Gewond? Dan healt aaien, maar levert het geen XP op.
+  if (member.hp < max) {
+    const healed = Math.min(max - member.hp, Math.ceil(max * PET_HEAL_FRACTION));
+    const hp = member.hp + healed;
+    team.updateMember(member.uid, { hp, happiness, lastPetAt: Date.now() });
+    hud.toast(`+${healed} HP – ${name} voelt zich beter (${hp}/${max})`, 2000);
+    return;
+  }
+
+  hud.toast(`+${PET_XP} XP – ${name} vindt het fijn!`, 1800);
+  giveXp(PET_XP, { happiness, lastPetAt: Date.now() });
 };
 
 const pointer = createPointer(canvas, camera, [

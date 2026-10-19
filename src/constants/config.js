@@ -26,7 +26,12 @@ export const BUDDY_HEART_GAP = 0.5; // hartje zweeft zoveel boven de buddy
 export const PET_COOLDOWN = 30;
 export const PET_STROKE_PIXELS = 220;
 export const PET_HAPPINESS = 10; // max 100
-export const PET_XP = 3;
+export const PET_XP = 3; // enkel als de buddy volle HP heeft
+export const PET_HEAL_FRACTION = 0.25; // aaien healt dit deel van de max HP (en geeft dan geen XP)
+
+// HP: max HP = HP_BASE + HP_PER_LEVEL * level. Daalt in gevechten, healen kan enkel door aaien.
+export const HP_BASE = 20;
+export const HP_PER_LEVEL = 5;
 
 // Wandelen met je buddy: elke WALK_XP_INTERVAL seconden lopen = WALK_XP.
 export const WALK_XP_INTERVAL = 10;
