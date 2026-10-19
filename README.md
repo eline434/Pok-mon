@@ -4,7 +4,7 @@
 
 **Originele Shadertoy shader(s):** aaien van pokemon:https://www.shadertoy.com/view/Wsj3R1   start van gevecht:https://www.shadertoy.com/view/Wsj3R1  wanneer pokemon gevangen:https://www.shadertoy.com/view/7sjfRy
 
-**Live demo:** `TODO: url na eerste deploy`
+**Live demo:** https://eline434.github.io/Pok-mon/
 **Broncode:** [https://github.com/eline434/Pok-mon.git]
 
 ---
@@ -125,7 +125,7 @@ Port-stappen per shader (zoals in de les):
 Vink af per stap. Elke fase eindigt met een **deploy**.
 
 ### Fase 0 – Setup & eerste deploy
-- [ ] Git-repo + GitHub-repo aanmaken, `.gitignore` (`node_modules`, `dist`)
+- [x] Git-repo + GitHub-repo aanmaken, `.gitignore` (`node_modules`, `dist`)
 - [x] `npm init -y`, `npm install three`, `npm install -D vite`, dev-script
 - [x] `index.html` met fullscreen canvas, `src/main.js` met WebGPURenderer + camera + scene + licht
 - [x] Eenvoudige test-cube die draait
