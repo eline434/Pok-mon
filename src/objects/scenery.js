@@ -5,14 +5,14 @@ import {
   SPAWN_CLEAR_RADIUS,
   BORDER_INNER,
   BORDER_OUTER,
-  TALL_GRASS_ZONES,
 } from '../constants/world.js';
 import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
+import { TALL_GRASS_BLOBS } from './tallGrass.js';
 
 const isFree = (x, z, margin, taken, minDistance) => {
   if (x * x + z * z < (SPAWN_CLEAR_RADIUS + margin) ** 2) return false;
-  for (const zone of TALL_GRASS_ZONES) {
-    if ((x - zone.x) ** 2 + (z - zone.z) ** 2 < (zone.radius + margin) ** 2) return false;
+  for (const blob of TALL_GRASS_BLOBS) {
+    if ((x - blob.x) ** 2 + (z - blob.z) ** 2 < (blob.radius + margin) ** 2) return false;
   }
   return taken.every((p) => (p.x - x) ** 2 + (p.z - z) ** 2 > minDistance ** 2);
 };

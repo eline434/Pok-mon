@@ -4,13 +4,16 @@ export const WORLD_SEED = 151;
 // Rond het startpunt blijft alles vrij.
 export const SPAWN_CLEAR_RADIUS = 5;
 
-// Zones met hoog gras: hier kunnen wilde pokémon opduiken (Fase 3).
-export const TALL_GRASS_ZONES = [
-  { x: -14, z: -10, radius: 7 },
-  { x: 15, z: -16, radius: 6 },
-  { x: 10, z: 13, radius: 6.5 },
-  { x: -16, z: 16, radius: 5 },
-];
+// Velden met hoog gras: hier kunnen wilde pokémon opduiken.
+// Elk veld is een groepje overlappende cirkels ("blobs") -> grillige vormen.
+export const TALL_GRASS_PATCHES = {
+  count: 16,
+  blobs: { min: 3, max: 6 },
+  blobRadius: { min: 1.2, max: 2.4 },
+  blobSpread: { min: 1.5, max: 3.6 }, // afstand van een blob tot het midden van het veld
+  minDistance: 8, // tussen de middens van twee velden
+  limit: 27, // velden blijven binnen -limit..limit
+};
 export const TALL_GRASS_SPACING = 1.6;
 
 // Decor-modellen: url + hoogte in meter (modellen worden hierop geschaald).

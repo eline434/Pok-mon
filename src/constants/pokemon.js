@@ -7,7 +7,7 @@ const FACE_FORWARD = Math.PI;
 export const SPECIES = [
   { id: 'eevee', name: 'Eevee', stars: 0, height: 0.84 },
   { id: 'charmander', name: 'Charmander', stars: 0, height: 1.05 },
-  { id: 'squirtle', name: 'Squirtle', stars: 0, height: 0.98 },
+  { id: 'squirtle', name: 'Squirtle', stars: 0, height: 0.98, rotation: (Math.PI * 5) / 4 },
   { id: 'magikarp', name: 'Magikarp', stars: 0, height: 1.12, motion: 'flop', rotation: Math.PI / 2 },
   { id: 'pikachu', name: 'Pikachu', stars: 0, height: 0.91 },
   { id: 'oddish', name: 'Oddish', stars: 0, height: 0.84 },

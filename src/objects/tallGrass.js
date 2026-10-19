@@ -1,25 +1,63 @@
 import * as THREE from 'three/webgpu';
-import { TALL_GRASS_ZONES, TALL_GRASS_SPACING, MODELS } from '../constants/world.js';
+import {
+  TALL_GRASS_PATCHES,
+  TALL_GRASS_SPACING,
+  MODELS,
+  WORLD_SEED,
+  SPAWN_CLEAR_RADIUS,
+} from '../constants/world.js';
 import { TALL_GRASS_GROUND_COLOR } from '../constants/colors.js';
+import { createRandom } from '../utils/random.js';
 import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
 
-// Plukken gras op een verschoven raster binnen elke cirkelvormige zone.
+// Layout van de grasvelden (vaste seed): lijst van cirkels { x, z, radius }.
+const createBlobs = () => {
+  const random = createRandom(WORLD_SEED + 2);
+  const { count, blobs, blobRadius, blobSpread, minDistance, limit } = TALL_GRASS_PATCHES;
+  const centers = [];
+  const result = [];
+
+  for (let tries = 0; centers.length < count && tries < count * 100; tries++) {
+    const x = random.range(-limit, limit);
+    const z = random.range(-limit, limit);
+    if (Math.hypot(x, z) < SPAWN_CLEAR_RADIUS + 4) continue;
+    if (centers.some((c) => Math.hypot(c.x - x, c.z - z) < minDistance)) continue;
+    centers.push({ x, z });
+
+    const blobCount = Math.floor(random.range(blobs.min, blobs.max + 1));
+    for (let i = 0; i < blobCount; i++) {
+      const angle = random.range(0, Math.PI * 2);
+      const distance = i === 0 ? 0 : random.range(blobSpread.min, blobSpread.max);
+      result.push({
+        x: x + Math.cos(angle) * distance,
+        z: z + Math.sin(angle) * distance,
+        radius: random.range(blobRadius.min, blobRadius.max),
+      });
+    }
+  }
+  return result;
+};
+
+export const TALL_GRASS_BLOBS = createBlobs();
+
+const insideBlob = (x, z, margin = 0) =>
+  TALL_GRASS_BLOBS.some((blob) => (x - blob.x) ** 2 + (z - blob.z) ** 2 < (blob.radius - margin) ** 2);
+
+// Plukken gras op één verschoven raster over het hele veld, enkel binnen de blobs (geen dubbels bij overlap).
 const createGrassTransforms = (random) => {
   const transforms = [];
-  for (const zone of TALL_GRASS_ZONES) {
-    const r = zone.radius;
-    for (let x = -r; x <= r; x += TALL_GRASS_SPACING) {
-      for (let z = -r; z <= r; z += TALL_GRASS_SPACING) {
-        const px = x + random.range(-0.4, 0.4);
-        const pz = z + random.range(-0.4, 0.4);
-        if (px * px + pz * pz > (r - 0.6) ** 2) continue;
-        transforms.push({
-          x: zone.x + px,
-          z: zone.z + pz,
-          rotation: random.range(0, Math.PI * 2),
-          scale: random.range(0.6, 0.85),
-        });
-      }
+  const extent = TALL_GRASS_PATCHES.limit + TALL_GRASS_PATCHES.blobSpread.max + TALL_GRASS_PATCHES.blobRadius.max;
+  for (let x = -extent; x <= extent; x += TALL_GRASS_SPACING) {
+    for (let z = -extent; z <= extent; z += TALL_GRASS_SPACING) {
+      const px = x + random.range(-0.4, 0.4);
+      const pz = z + random.range(-0.4, 0.4);
+      if (!insideBlob(px, pz, 0.6)) continue;
+      transforms.push({
+        x: px,
+        z: pz,
+        rotation: random.range(0, Math.PI * 2),
+        scale: random.range(0.6, 0.85),
+      });
     }
   }
   return transforms;
@@ -30,10 +68,10 @@ export const createTallGrass = async (random) => {
 
   // Donkerdere ondergrond zodat je de zones herkent.
   const groundMaterial = new THREE.MeshStandardNodeMaterial({ color: TALL_GRASS_GROUND_COLOR, roughness: 1 });
-  for (const zone of TALL_GRASS_ZONES) {
-    const ground = new THREE.Mesh(new THREE.CircleGeometry(zone.radius, 40), groundMaterial);
+  for (const blob of TALL_GRASS_BLOBS) {
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(blob.radius, 32), groundMaterial);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.set(zone.x, 0.01, zone.z);
+    ground.position.set(blob.x, 0.01, blob.z);
     ground.receiveShadow = true;
     group.add(ground);
   }
@@ -55,9 +93,4 @@ export const createTallGrass = async (random) => {
 };
 
 // Staat een positie in hoog gras? (gebruikt voor encounters)
-export const isInTallGrass = (position) =>
-  TALL_GRASS_ZONES.some((zone) => {
-    const dx = position.x - zone.x;
-    const dz = position.z - zone.z;
-    return dx * dx + dz * dz < zone.radius * zone.radius;
-  });
+export const isInTallGrass = (position) => insideBlob(position.x, position.z);
