@@ -9,7 +9,7 @@ Niet-commercieel schoolproject. Pokémon is een handelsmerk van Nintendo / Game 
 ## Modellen
 | Model | Maker | Bron | Licentie |
 | ----- | ----- | ---- | -------- |
-| Man (trainer) | Polygonal Mind | https://poly.pizza/m/nbLBTJMg0b | CC0 1.0 |
+| Trainer (speler) | Eigen model (Blender), loopanimatie via Mixamo | – | – |
 | Grass Patch | Danni Bittman | https://poly.pizza/m/dz_TvM39dC7 | CC-BY 3.0 |
 | Flower Group | Quaternius | https://poly.pizza/m/hfPzQAedOe | CC0 1.0 |
 | Flowers | Quaternius | https://poly.pizza/m/dOO6kMDd8L | CC0 1.0 |

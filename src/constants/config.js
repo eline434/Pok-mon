@@ -1,12 +1,13 @@
 export const FIELD_SIZE = 80;
 
-// "Man" door Polygonal Mind (poly.pizza, CC0).
-export const TRAINER_MODEL_URL = 'models/trainer.glb';
+// Eigen trainer, gerigd + loopanimatie via Mixamo.
+export const TRAINER_MODEL_URL = 'models/trainer1.glb';
 export const TRAINER_HEIGHT = 1.7;
-export const TRAINER_MODEL_ROTATION = -Math.PI / 2; // model kijkt standaard naar +x, draai naar +z
+export const TRAINER_MODEL_ROTATION = 0; // model kijkt al naar +z
 
 export const TRAINER_SPEED = 4; // units per seconde
 export const TRAINER_TURN_SPEED = 10;
+export const TRAINER_ANIMATION_SPEED = 1.8; // loopanimatie sneller afspelen zodat de voeten niet glijden
 
 // Camera volgt de trainer met deze offset (achter en boven).
 export const CAMERA_OFFSET = { x: 0, y: 4, z: 7 };
