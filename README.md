@@ -33,6 +33,7 @@ Je loopt rond in een veld, vangt wilde pokémon in het hoge gras, neemt er één
 | ------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hartje** (`src/shaders/heart/fragment.wgsl`, port van Wsj3R1, enkel het hart) | Boven je buddy na het aaien                              | Muis: slepen/klikken laat het hart poppen (`progress`). Uniform `happiness` maakt het roze, laat het sneller kloppen en geeft een gloed. |
 | **Speed lines** (`src/shaders/encounter/fragment.wgsl`, port van wsfcDM)        | Fullscreen overgang bij encounters, trainen en gevechten | Gameplay: `progress` (lijnen schieten naar binnen tot wit) + `time` (schokkerige anime-animatie).                                        |
+| **Gras** (vertex-shader in TSL, `src/objects/grassMaterial.js`)                 | Alle plukken hoog gras                                   | Speler- en buddy-positie als uniforms: gras buigt weg, ritselt terwijl je erdoor loopt, en wiegt zacht in de wind.                       |
 
 ### Gameplay-systemen
 - **Vangen:** pokéball gooien in een boog, wiebelen, vangkans en vluchtkans volgens zeldzaamheid (★).
@@ -43,7 +44,7 @@ Je loopt rond in een veld, vangt wilde pokémon in het hoge gras, neemt er één
 - Alles wordt bewaard in `localStorage` (team, buddy, HP, XP, overwinningen).
 
 ### Extra's
-- **Meerdere shaders** (hartje + speed-lines-overgang), allebei geport naar WGSL en aangestuurd door eigen uniforms.
+- **Meerdere shaders**: hartje + speed-lines-overgang (allebei geport naar WGSL, aangestuurd door eigen uniforms) en een TSL-vertex-shader voor gras dat wegbuigt voor de speler.
 - **Eigen Blender-modellen** voor de trainer (speler) en de NPC's, gerigd met **Mixamo**.
 - **Animaties aansturen** met `AnimationMixer`: loopcyclus van de speler (pauzeert met de benen samen bij stilstaan) en idle-animatie van de NPC's.
 - **NPC's herkleurd in code**: het kleurenpalet van het model wordt per NPC aangepast (canvas-texture).
@@ -230,7 +231,7 @@ Vink af per stap. Elke fase eindigt met een **deploy**.
 ### Fase 6 – Extra's (enkel als alles hierboven werkt)
 - [ ] Physics: speler-collision met bomen/rotsen, pokéball-worp
 - [ ] Eigen Blender-model met gebakken belichting
-- [ ] Extra shaders (gras-wind, vangeffect)
+- [ ] Extra shaders (gras-wind, vangeffect) → gras-wind + wegbuigen: klaar, vangeffect nog niet
 - [ ] Compute shader voor particles (aai-hartjes of vangeffect)
 - [ ] Geluid, mobiele besturing, loading screen (loading screen: klaar in Fase 7)
 
