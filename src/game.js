@@ -14,7 +14,7 @@ import { createPointer } from './systems/pointer.js';
 import { loadPokemonModels } from './objects/pokemon.js';
 import { loadPokeballModel } from './objects/pokeball.js';
 import { createTransition } from './objects/transition.js';
-import { createEncounterChecker, pickSpecies } from './systems/encounters.js';
+import { createEncounterChecker } from './systems/encounters.js';
 import { createWildEncounter } from './systems/wildEncounter.js';
 import { createTeam } from './systems/team.js';
 import { createHud } from './ui/hud.js';
@@ -282,12 +282,9 @@ const startEncounter = (species) => {
   wildEncounter.start(species);
 };
 
-// Testen/demo: E start meteen een encounter (?species=mew in de url voor een vaste soort).
-const params = new URLSearchParams(window.location.search);
 window.addEventListener('keydown', (event) => {
   if (event.repeat || mode !== 'explore') return;
   const key = event.key.toLowerCase();
-  if (event.code === 'KeyE' || key === 'e') startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
   if (event.code === 'KeyR' || key === 'r') startTraining();
   if (event.code === 'KeyF' || key === 'f') startBattle(nearbyNpc());
 });

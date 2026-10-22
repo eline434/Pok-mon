@@ -36,7 +36,6 @@ Je voortgang (team, buddy, levels, HP, overwinningen) wordt bewaard in je browse
 | `T` | Team-menu (buddy kiezen, HP en levels) |
 | `R` | Trainen (`spatie` of klik = springen) |
 | `F` (bij een trainer) | Vechten |
-| `E` | Meteen een wilde pokémon (handig om te testen; `?species=mew` in de url kiest de soort) |
 
 ---
 
