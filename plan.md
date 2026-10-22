@@ -22,7 +22,7 @@ Je loopt rond in een veld, vangt wilde pokémon in het hoge gras, neemt er één
 | -------------------------- | ------------------------------------------------------------------------------ |
 | `WASD` / `ZQSD` / pijltjes | Rondlopen                                                                      |
 | Door hoog gras lopen       | Kans op een wilde pokémon                                                      |
-| `E`                        | Meteen een wilde pokémon (demo; `?species=mew` in de url voor een vaste soort) |
+| ~~`E`~~                    | ~~Meteen een wilde pokémon~~ – **verwijderd** bij het finaliseren, zodat anderen deze test-shortcut niet zouden ontdekken |
 | Slepen over je buddy       | Aaien (om de 30 s): healt HP, of geeft XP als hij volle HP heeft               |
 | `T`                        | Team-menu: buddy kiezen, HP en levels bekijken                                 |
 | `R`                        | Trainen: ballen ontwijken (`spatie` / klik = springen)                         |
