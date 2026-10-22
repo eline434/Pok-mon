@@ -89,11 +89,11 @@ export const createTallGrass = async (random) => {
 
   // Gras rond de gegeven punten plat leggen (bv. tijdens een encounter), zodat je de pokémon ziet.
   const flatten = (points, radius) => {
-    writeInstanceMatrices(instances, transforms, ({ x, z }) =>
+    writeInstanceMatrices(instances, ({ x, z }) =>
       points.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < radius * radius) ? 0.15 : 1,
     );
   };
-  const restore = () => writeInstanceMatrices(instances, transforms);
+  const restore = () => writeInstanceMatrices(instances);
 
   return { group, flatten, restore };
 };

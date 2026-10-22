@@ -18,16 +18,85 @@ body {
   height: 100vh;
 }
 
-#message {
+#loading {
   position: fixed;
-  left: 50%;
-  bottom: 1rem;
-  transform: translateX(-50%);
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font: 14px/1.4 system-ui, sans-serif;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #87c5ea;
+  font: 15px/1.4 system-ui, sans-serif;
+  color: #1d2b1a;
+  transition: opacity 0.5s ease;
+}
+
+#loading.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-card {
+  width: min(26rem, 100%);
+  padding: 1.5rem;
+  border: 3px solid #1d2b1a;
+  border-radius: 0.75rem;
+  background: #fff;
+  text-align: center;
+}
+
+.loading-card h1 {
+  margin-bottom: 0.75rem;
+  font-size: 26px;
+}
+
+.loading-status {
+  font-weight: 600;
+}
+
+.loading-bar {
+  height: 0.7rem;
+  margin: 0.6rem 0 1rem;
+  overflow: hidden;
+  border: 2px solid #1d2b1a;
+  border-radius: 1rem;
+  background: #eee;
+}
+
+.loading-bar > div {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #e3350d, #ffcb05);
+  transition: width 0.2s ease;
+}
+
+.loading-error {
+  display: none;
+  margin-bottom: 1rem;
+}
+
+#loading.is-error .loading-bar {
+  display: none;
+}
+
+#loading.is-error .loading-status {
+  color: #c62828;
+}
+
+#loading.is-error .loading-error {
+  display: block;
+}
+
+.loading-controls {
+  color: #555;
+  font-size: 13px;
+}
+
+.loading-controls kbd {
+  padding: 0 0.3rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  font: inherit;
 }
 
 /* HUD */

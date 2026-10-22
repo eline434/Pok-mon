@@ -41,9 +41,10 @@ export const loadPrototype = async ({ url, height }) => {
 };
 
 // Schrijft de matrices van alle instances; scaleFactor(transform) kan een kopie kleiner maken.
-export const writeInstanceMatrices = (group, transforms, scaleFactor = () => 1) => {
+// Elke InstancedMesh kent zijn eigen kopieën via userData.transforms.
+export const writeInstanceMatrices = (group, scaleFactor = () => 1) => {
   for (const mesh of group.children) {
-    transforms.forEach((transform, i) => {
+    mesh.userData.transforms.forEach((transform, i) => {
       dummy.position.set(transform.x, 0, transform.z);
       dummy.rotation.set(0, transform.rotation, 0);
       dummy.scale.setScalar(transform.scale * scaleFactor(transform));
@@ -54,19 +55,35 @@ export const writeInstanceMatrices = (group, transforms, scaleFactor = () => 1) 
   }
 };
 
-// Eén InstancedMesh per onderdeel: veel kopieën in weinig draw calls.
+// Verdeelt kopieën in vakken van CHUNK_SIZE meter. Zo kan three.js vakken buiten beeld
+// (of buiten de schaduwcamera) overslaan, wat bij één grote InstancedMesh niet kan.
+const CHUNK_SIZE = 16;
+const splitInChunks = (transforms) => {
+  const chunks = new Map();
+  for (const transform of transforms) {
+    const key = `${Math.floor(transform.x / CHUNK_SIZE)},${Math.floor(transform.z / CHUNK_SIZE)}`;
+    if (!chunks.has(key)) chunks.set(key, []);
+    chunks.get(key).push(transform);
+  }
+  return [...chunks.values()];
+};
+
+// InstancedMeshes per onderdeel en per vak: veel kopieën in weinig draw calls.
 // transforms: [{ x, z, rotation, scale }]
 export const createInstances = (parts, transforms, { castShadow = false, receiveShadow = true } = {}) => {
   const group = new THREE.Group();
 
-  for (const { geometry, material } of parts) {
-    const mesh = new THREE.InstancedMesh(geometry, material, transforms.length);
-    mesh.castShadow = castShadow;
-    mesh.receiveShadow = receiveShadow;
-    group.add(mesh);
+  for (const chunk of splitInChunks(transforms)) {
+    for (const { geometry, material } of parts) {
+      const mesh = new THREE.InstancedMesh(geometry, material, chunk.length);
+      mesh.userData.transforms = chunk;
+      mesh.castShadow = castShadow;
+      mesh.receiveShadow = receiveShadow;
+      group.add(mesh);
+    }
   }
 
-  writeInstanceMatrices(group, transforms);
+  writeInstanceMatrices(group);
   group.children.forEach((mesh) => mesh.computeBoundingSphere());
   return group;
 };

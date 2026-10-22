@@ -4,11 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pokémon Field</title>
+    <meta name="description" content="Niet-commercieel schoolproject: loop rond, vang pokémon, train je buddy en versla 3 trainers. Gemaakt met Three.js en WebGPU." />
     <link rel="stylesheet" href="./src/ui/style.css" />
   </head>
   <body>
     <canvas id="app"></canvas>
-    <div id="message" hidden></div>
+
+    <div id="loading">
+      <div class="loading-card">
+        <h1>Pokémon Field</h1>
+        <p class="loading-status">Laden…</p>
+        <div class="loading-bar"><div></div></div>
+        <p class="loading-error"></p>
+        <p class="loading-controls">
+          <kbd>WASD</kbd> lopen · <kbd>T</kbd> team · <kbd>R</kbd> trainen · <kbd>F</kbd> vechten · sleep over je buddy om te aaien
+        </p>
+      </div>
+    </div>
+
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>

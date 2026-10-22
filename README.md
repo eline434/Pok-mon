@@ -2,10 +2,66 @@
 
 > Instructieplan voor mezelf én de AI-agent. Dit bestand is ook de README van het project.
 
-**Originele Shadertoy shader(s):** aaien van pokemon:https://www.shadertoy.com/view/Wsj3R1   start van gevecht:https://www.shadertoy.com/view/wsfcDM  wanneer pokemon gevangen:https://www.shadertoy.com/view/7sjfRy
+**Originele Shadertoy shader(s):**
+- Aaien van pokémon (hartje): https://www.shadertoy.com/view/Wsj3R1
+- Start van een gevecht / encounter (speed lines): https://www.shadertoy.com/view/wsfcDM
+- Wanneer een pokémon gevangen is: https://www.shadertoy.com/view/7sjfRy (nog niet gebruikt)
 
 **Live demo:** https://eline434.github.io/Pok-mon/
-**Broncode:** [https://github.com/eline434/Pok-mon.git]
+**Broncode:** https://github.com/eline434/Pok-mon
+
+---
+
+## Over het project
+
+Een kleine third-person pokémon-game in de browser, gemaakt met **Three.js (`WebGPURenderer`)** en **WGSL-shaders** die van Shadertoy geport zijn. Niet-commercieel schoolproject.
+
+Je loopt rond in een veld, vangt wilde pokémon in het hoge gras, neemt er één mee als **buddy**, aait en traint hem zodat hij levelt, en vecht tegen **3 NPC-trainers** die na elke nederlaag sterker worden.
+
+### Besturing
+| Toets / actie | Wat |
+| --- | --- |
+| `WASD` / `ZQSD` / pijltjes | Rondlopen |
+| Door hoog gras lopen | Kans op een wilde pokémon |
+| `E` | Meteen een wilde pokémon (demo; `?species=mew` in de url voor een vaste soort) |
+| Slepen over je buddy | Aaien (om de 30 s): healt HP, of geeft XP als hij volle HP heeft |
+| `T` | Team-menu: buddy kiezen, HP en levels bekijken |
+| `R` | Trainen: ballen ontwijken (`spatie` / klik = springen) |
+| `F` (bij een NPC) | Vechten |
+
+### Shaders en interactie
+| Shader | Waar | Reageert op |
+| --- | --- | --- |
+| **Hartje** (`src/shaders/heart/fragment.wgsl`, port van Wsj3R1, enkel het hart) | Boven je buddy na het aaien | Muis: slepen/klikken laat het hart poppen (`progress`). Uniform `happiness` maakt het roze, laat het sneller kloppen en geeft een gloed. |
+| **Speed lines** (`src/shaders/encounter/fragment.wgsl`, port van wsfcDM) | Fullscreen overgang bij encounters, trainen en gevechten | Gameplay: `progress` (lijnen schieten naar binnen tot wit) + `time` (schokkerige anime-animatie). |
+
+### Gameplay-systemen
+- **Vangen:** pokéball gooien in een boog, wiebelen, vangkans en vluchtkans volgens zeldzaamheid (★).
+- **Buddy:** volgt je, reageert op aaien (sprongetje + pirouette), wordt groter met zijn level.
+- **Levels & HP:** XP door aaien (30 s cooldown), wandelen (+1 per 10 s) en trainen (meeste XP). Max HP = 20 + 5 × level. Healen kan enkel door te aaien (dan geen XP).
+- **Trainen:** mini-game "ballen ontwijken" in een aparte arena.
+- **NPC-gevechten:** beurtgebaseerd (aanval / sterke aanval / verdedigen), HP-balken. Na elke overwinning wordt de pokémon van die NPC 3 levels sterker. Een buddy met 0 HP kan niet vechten.
+- Alles wordt bewaard in `localStorage` (team, buddy, HP, XP, overwinningen).
+
+### Extra's
+- **Meerdere shaders** (hartje + speed-lines-overgang), allebei geport naar WGSL en aangestuurd door eigen uniforms.
+- **Eigen Blender-modellen** voor de trainer (speler) en de NPC's, gerigd met **Mixamo**.
+- **Animaties aansturen** met `AnimationMixer`: loopcyclus van de speler (pauzeert met de benen samen bij stilstaan) en idle-animatie van de NPC's.
+- **NPC's herkleurd in code**: het kleurenpalet van het model wordt per NPC aangepast (canvas-texture).
+- **Procedurele animaties** voor alle pokémon (hop, zweven, spartelen, reacties in gevechten).
+- **Instancing** voor gras en decor, verdeeld in vakken zodat three.js wat buiten beeld is kan overslaan.
+- Laadscherm met voortgang en een duidelijke melding als WebGPU niet beschikbaar is.
+
+### Lokaal starten
+```bash
+npm install
+npm run dev      # ontwikkelserver
+npm run build    # productie-build in dist/
+npm run preview  # build lokaal bekijken
+```
+Werkt in browsers met **WebGPU**: Chrome of Edge 113+ (desktop), Safari 26+. Zonder WebGPU toont de game een melding (de WGSL-shaders werken niet in de WebGL2-fallback).
+
+Credits en licenties van alle modellen: zie [`CREDITS.md`](CREDITS.md).
 
 ---
 
@@ -38,8 +94,8 @@ Een Shadertoy fragment shader porteren naar WGSL, integreren in een Three.js-sc�
 Elke laag moet **werken en gedeployed** zijn voor je aan de volgende begint.
 
 1. **MVP:** veld + trainer die rondloopt + 1 shader met interactie → deployed
-2. Pokémon die meelopen + aaien (shader reageert)
-3. Willekeurige encounters + vangen
+2. Willekeurige encounters + vangen
+3. Pokémon die meelopen + aaien (shader reageert)
 4. Trainen + stats opslaan (localStorage)
 5. 3 NPC-trainers + simpel gevecht
 6. Extra's: physics, Blender-bake, extra shaders
@@ -66,24 +122,27 @@ Elke laag moet **werken en gedeployed** zijn voor je aan de volgende begint.
 
 ### Mappenstructuur
 ```
-pokemon-field/
+pokemon/
 ├─ README.md
-├─ index.html
+├─ CREDITS.md
+├─ index.html              # canvas + laadscherm
 ├─ package.json
 ├─ vite.config.js
 ├─ .gitignore              # node_modules, dist
+├─ .github/workflows/      # automatische deploy naar GitHub Pages
 ├─ public/
-│  └─ models/              # .glb bestanden
+│  └─ models/              # .glb bestanden (trainers, decor, pokemon/)
 └─ src/
-   ├─ main.js              # renderer, scene, loop
-   ├─ constants/
-   ├─ objects/             # trainer, pokemon, veld, npc
-   ├─ systems/             # input, encounters, battle, training, save
+   ├─ main.js              # startpunt: laadscherm + WebGPU-check, laadt game.js
+   ├─ game.js              # renderer, scene, loop, modes (rondlopen/encounter/trainen/gevecht)
+   ├─ constants/           # config, kleuren, wereld, pokémon, NPC's
+   ├─ objects/             # trainer, buddy, pokemon, pokeball, npc, gras, decor, arena, hartje, overgang
+   ├─ systems/             # input, camera, pointer, encounters, vangen, team (save), progressie, trainen, gevecht
    ├─ shaders/
-   │  ├─ field/fragment.wgsl
-   │  ├─ pet/fragment.wgsl
-   │  └─ ...
-   └─ ui/                  # HUD (html/css overlay)
+   │  ├─ heart/fragment.wgsl
+   │  └─ encounter/fragment.wgsl
+   ├─ ui/                  # HUD + laadscherm (html/css overlay)
+   └─ utils/               # seeded random, tweens
 ```
 
 ---
@@ -134,53 +193,53 @@ Vink af per stap. Elke fase eindigt met een **deploy**.
 
 ### Fase 1 – Veld, trainer & eerste shader (MVP)
 - [x] Vlak veld (grond) met mist/hemelkleur, lichten, schaduwen
-- [ ] Trainer-model laden (GLB) + Mixamo idle/walk via `AnimationMixer`
+- [x] Trainer-model laden (GLB) + Mixamo idle/walk via `AnimationMixer` (eigen model, loopcyclus)
 - [x] Besturing: WASD/pijltjes (+ evt. klik-om-te-lopen), camera die de trainer volgt
 - [x] Gekozen Shadertoy-shader porteren (§4) en op een mesh zetten
 - [x] Shader reageert op muis (`iMouse`) of speler-positie
-- [ ] README invullen met **Shadertoy-URL**, commit, deploy
+- [x] README invullen met **Shadertoy-URL**, commit, deploy
 
-### Fase 2 – Pokémon meenemen & aaien
-- [ ] Eén pokémon laden en naast de trainer laten volgen (smooth follow)
-- [ ] Raycaster: muis over pokémon = hover, klik/sleep = aaien
-- [ ] Aaien verhoogt `happiness` → uniform in de aai-shader (glow, hartjes/particles, kleurverandering)
-- [ ] Kleine reactie-animatie (hop, draaien)
-- [ ] Commit + deploy
+### Fase 2 – Encounters & vangen
+- [x] Zones met hoog gras (visueel andere kleur/shader)
+- [x] Bij lopen in gras: kans per stap op een random pokémon (lijst van 5–8 soorten uit `constants/pokemon.js`) → 14 soorten met zeldzaamheid
+- [x] Encounter-overgang (warp/swirl-shader) → speed lines (wsfcDM)
+- [x] Pokéball gooien (physics met Rapier voor extra punten) → vangkans op basis van stats (boog via tween, nog zonder Rapier)
+- [x] Gevangen pokémon opslaan in "team"-lijst (localStorage)
+- [x] UI: team-menu waar je 1 pokémon kiest om mee te nemen
+- [x] Commit + deploy
 
-### Fase 3 – Encounters & vangen
-- [ ] Zones met hoog gras (visueel andere kleur/shader)
-- [ ] Bij lopen in gras: kans per stap op een random pokémon (lijst van 5–8 soorten uit `constants/pokemon.js`)
-- [ ] Encounter-overgang (warp/swirl-shader)
-- [ ] Pokéball gooien (physics met Rapier voor extra punten) → vangkans op basis van stats
-- [ ] Gevangen pokémon opslaan in "team"-lijst (localStorage)
-- [ ] UI: team-menu waar je 1 pokémon kiest om mee te nemen
-- [ ] Commit + deploy
+### Fase 3 – Pokémon meenemen & aaien
+- [x] Eén pokémon laden en naast de trainer laten volgen (smooth follow)
+- [x] Raycaster: muis over pokémon = hover, klik/sleep = aaien
+- [x] Aaien verhoogt `happiness` → uniform in de aai-shader (glow, hartjes/particles, kleurverandering)
+- [x] Kleine reactie-animatie (hop, draaien)
+- [x] Commit + deploy
 
 ### Fase 4 – Trainen
-- [ ] Mini-oefening (bv. klik-ritme, ballen ontwijken of timer-gebaseerd "sparren")
-- [ ] XP/level/stats stijgen, opgeslagen in localStorage
-- [ ] Visuele feedback (schaal, aura-shader wordt intenser met level)
-- [ ] Commit + deploy
+- [x] Mini-oefening (bv. klik-ritme, ballen ontwijken of timer-gebaseerd "sparren") → ballen ontwijken
+- [x] XP/level/stats stijgen, opgeslagen in localStorage (+ HP, healen door aaien)
+- [x] Visuele feedback (schaal, aura-shader wordt intenser met level) → schaal per level, gloed volgens happiness
+- [x] Commit + deploy
 
 ### Fase 5 – 3 NPC-trainers & gevechten
-- [ ] 3 NPC's op vaste plaatsen in het veld, elk met eigen pokémon + moeilijkheid
-- [ ] Naderen → dialoog → battle-modus (camera zoomt, arena-shader)
-- [ ] Beurtgebaseerd systeem: aanval / sterke aanval / verdedigen, HP-balken
-- [ ] Winst → XP + NPC krijgt "verslagen"-status (opgeslagen)
-- [ ] Commit + deploy
+- [x] 3 NPC's op vaste plaatsen in het veld, elk met eigen pokémon + moeilijkheid
+- [x] Naderen → dialoog → battle-modus (camera zoomt, arena-shader) → speed-lines-overgang naar de arena
+- [x] Beurtgebaseerd systeem: aanval / sterke aanval / verdedigen, HP-balken
+- [x] Winst → XP + NPC krijgt "verslagen"-status (opgeslagen) → en wordt sterker
+- [x] Commit + deploy
 
 ### Fase 6 – Extra's (enkel als alles hierboven werkt)
 - [ ] Physics: speler-collision met bomen/rotsen, pokéball-worp
 - [ ] Eigen Blender-model met gebakken belichting
 - [ ] Extra shaders (gras-wind, vangeffect)
 - [ ] Compute shader voor particles (aai-hartjes of vangeffect)
-- [ ] Geluid, mobiele besturing, loading screen
+- [ ] Geluid, mobiele besturing, loading screen (loading screen: klaar in Fase 7)
 
 ### Fase 7 – Afwerking & inlevering
-- [ ] Performance check (modelgrootte, schaduwresolutie, aantal draw calls)
-- [ ] Loading screen en foutmelding als WebGPU niet beschikbaar is
-- [ ] `README.md`: Shadertoy-URL, instructies (`npm install`, `npm run dev`, `npm run build`), besturing, credits
-- [ ] `CREDITS.md` met modellen, licenties, Mixamo-animaties
+- [x] Performance check (modelgrootte, schaduwresolutie, aantal draw calls) → modellen ≤ 1,2 MB, schaduw 1024², ~180 draw calls, gras/decor per vak gecullt (3,4 → 1,7 M driehoeken)
+- [x] Loading screen en foutmelding als WebGPU niet beschikbaar is
+- [x] `README.md`: Shadertoy-URL, instructies (`npm install`, `npm run dev`, `npm run build`), besturing, credits
+- [x] `CREDITS.md` met modellen, licenties, Mixamo-animaties
 - [ ] Controleren dat de **live url werkt in een incognitovenster** en op een ander toestel
 - [ ] Zip of repo-link **zonder `node_modules`**; url en broncode in de aparte opdrachten indienen
 
@@ -219,7 +278,7 @@ Regels:
 | Shader te zwaar                    | Lagere render-resolutie, `devicePixelRatio` beperken                       |
 | Shader-kleuren te licht            | `colorSpaceToWorking(..., SRGBColorSpace)` of `outputColorSpace` aanpassen |
 | Deploy toont wit scherm            | Pad-problemen: `base` in Vite, modellen in `public/`                       |
-| WebGPU niet in browser             | Three.js valt terug op WebGL2; test dit; toon melding indien het niet lukt |
+| WebGPU niet in browser             | WGSL-shaders werken niet in WebGL2 → laadscherm toont een duidelijke melding |
 | Te veel scope                      | Terug naar MVP: lagen 1–2 zijn voldoende                                   |
 
 ---
@@ -227,12 +286,12 @@ Regels:
 ## 9. Inleverchecklist
 
 - [ ] Live url werkt (incognito getest)
-- [ ] Shader reageert zichtbaar op interactie
-- [ ] README bevat de originele **Shadertoy-URL**
-- [ ] Broncode zonder `node_modules` (repo of zip)
+- [x] Shader reageert zichtbaar op interactie
+- [x] README bevat de originele **Shadertoy-URL**
+- [x] Broncode zonder `node_modules` (repo of zip)
 - [ ] Url en broncode in de **aparte** opdrachten ingediend
-- [ ] Extra's vermeld in README (physics, meerdere shaders, Blender, ...)
-- [ ] Credits en licenties van modellen
+- [x] Extra's vermeld in README (physics, meerdere shaders, Blender, ...)
+- [x] Credits en licenties van modellen
 
 ---
 

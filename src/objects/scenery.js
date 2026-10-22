@@ -81,7 +81,6 @@ export const createScenery = async (random) => {
 
   const layer = (parts, transforms, options) => ({
     instances: createInstances(parts, transforms, options),
-    transforms,
     footprint: getFootprint(parts),
   });
 
@@ -98,14 +97,14 @@ export const createScenery = async (random) => {
 
   // Decor rond de gegeven punten verbergen (bv. bomen die een encounter in de weg staan).
   const hideNear = (points, radius) => {
-    for (const { instances, transforms, footprint } of layers) {
-      writeInstanceMatrices(instances, transforms, ({ x, z, scale }) => {
+    for (const { instances, footprint } of layers) {
+      writeInstanceMatrices(instances, ({ x, z, scale }) => {
         const reach = radius + footprint * scale;
         return points.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < reach * reach) ? 0 : 1;
       });
     }
   };
-  const restore = () => layers.forEach(({ instances, transforms }) => writeInstanceMatrices(instances, transforms));
+  const restore = () => layers.forEach(({ instances }) => writeInstanceMatrices(instances));
 
   return { group, hideNear, restore };
 };
