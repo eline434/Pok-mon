@@ -5,7 +5,6 @@
 **Originele Shadertoy shader(s):**
 - Aaien van pokémon (hartje): https://www.shadertoy.com/view/Wsj3R1
 - Start van een gevecht / encounter (speed lines): https://www.shadertoy.com/view/wsfcDM
-- Wanneer een pokémon gevangen is: https://www.shadertoy.com/view/7sjfRy (nog niet gebruikt)
 
 **Live demo:** https://eline434.github.io/Pok-mon/
 **Broncode:** https://github.com/eline434/Pok-mon
@@ -19,21 +18,21 @@ Een kleine third-person pokémon-game in de browser, gemaakt met **Three.js (`We
 Je loopt rond in een veld, vangt wilde pokémon in het hoge gras, neemt er één mee als **buddy**, aait en traint hem zodat hij levelt, en vecht tegen **3 NPC-trainers** die na elke nederlaag sterker worden.
 
 ### Besturing
-| Toets / actie | Wat |
-| --- | --- |
-| `WASD` / `ZQSD` / pijltjes | Rondlopen |
-| Door hoog gras lopen | Kans op een wilde pokémon |
-| `E` | Meteen een wilde pokémon (demo; `?species=mew` in de url voor een vaste soort) |
-| Slepen over je buddy | Aaien (om de 30 s): healt HP, of geeft XP als hij volle HP heeft |
-| `T` | Team-menu: buddy kiezen, HP en levels bekijken |
-| `R` | Trainen: ballen ontwijken (`spatie` / klik = springen) |
-| `F` (bij een NPC) | Vechten |
+| Toets / actie              | Wat                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `WASD` / `ZQSD` / pijltjes | Rondlopen                                                                      |
+| Door hoog gras lopen       | Kans op een wilde pokémon                                                      |
+| `E`                        | Meteen een wilde pokémon (demo; `?species=mew` in de url voor een vaste soort) |
+| Slepen over je buddy       | Aaien (om de 30 s): healt HP, of geeft XP als hij volle HP heeft               |
+| `T`                        | Team-menu: buddy kiezen, HP en levels bekijken                                 |
+| `R`                        | Trainen: ballen ontwijken (`spatie` / klik = springen)                         |
+| `F` (bij een NPC)          | Vechten                                                                        |
 
 ### Shaders en interactie
-| Shader | Waar | Reageert op |
-| --- | --- | --- |
-| **Hartje** (`src/shaders/heart/fragment.wgsl`, port van Wsj3R1, enkel het hart) | Boven je buddy na het aaien | Muis: slepen/klikken laat het hart poppen (`progress`). Uniform `happiness` maakt het roze, laat het sneller kloppen en geeft een gloed. |
-| **Speed lines** (`src/shaders/encounter/fragment.wgsl`, port van wsfcDM) | Fullscreen overgang bij encounters, trainen en gevechten | Gameplay: `progress` (lijnen schieten naar binnen tot wit) + `time` (schokkerige anime-animatie). |
+| Shader                                                                          | Waar                                                     | Reageert op                                                                                                                              |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hartje** (`src/shaders/heart/fragment.wgsl`, port van Wsj3R1, enkel het hart) | Boven je buddy na het aaien                              | Muis: slepen/klikken laat het hart poppen (`progress`). Uniform `happiness` maakt het roze, laat het sneller kloppen en geeft een gloed. |
+| **Speed lines** (`src/shaders/encounter/fragment.wgsl`, port van wsfcDM)        | Fullscreen overgang bij encounters, trainen en gevechten | Gameplay: `progress` (lijnen schieten naar binnen tot wit) + `time` (schokkerige anime-animatie).                                        |
 
 ### Gameplay-systemen
 - **Vangen:** pokéball gooien in een boog, wiebelen, vangkans en vluchtkans volgens zeldzaamheid (★).
@@ -271,15 +270,15 @@ Regels:
 
 ## 8. Risico's & oplossingen
 
-| Risico                             | Oplossing                                                                  |
-| ---------------------------------- | -------------------------------------------------------------------------- |
-| Pokémon-model heeft geen animaties | Procedurele animatie in code                                               |
-| Mixamo kan pokémon niet rigen      | Enkel voor de trainer gebruiken                                            |
-| Shader te zwaar                    | Lagere render-resolutie, `devicePixelRatio` beperken                       |
-| Shader-kleuren te licht            | `colorSpaceToWorking(..., SRGBColorSpace)` of `outputColorSpace` aanpassen |
-| Deploy toont wit scherm            | Pad-problemen: `base` in Vite, modellen in `public/`                       |
+| Risico                             | Oplossing                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| Pokémon-model heeft geen animaties | Procedurele animatie in code                                                 |
+| Mixamo kan pokémon niet rigen      | Enkel voor de trainer gebruiken                                              |
+| Shader te zwaar                    | Lagere render-resolutie, `devicePixelRatio` beperken                         |
+| Shader-kleuren te licht            | `colorSpaceToWorking(..., SRGBColorSpace)` of `outputColorSpace` aanpassen   |
+| Deploy toont wit scherm            | Pad-problemen: `base` in Vite, modellen in `public/`                         |
 | WebGPU niet in browser             | WGSL-shaders werken niet in WebGL2 → laadscherm toont een duidelijke melding |
-| Te veel scope                      | Terug naar MVP: lagen 1–2 zijn voldoende                                   |
+| Te veel scope                      | Terug naar MVP: lagen 1–2 zijn voldoende                                     |
 
 ---
 

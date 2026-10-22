@@ -74,5 +74,7 @@ export const createBuddy = () => {
     return out.copy(pokemon.root.position).setY((species.hover + species.height) * scale + BUDDY_HEART_GAP);
   };
 
-  return { group, setMember, setScale, update, react, getHeartPosition, hasBuddy: () => pokemon !== null };
+  const getPosition = () => pokemon?.root.position ?? null;
+
+  return { group, setMember, setScale, update, react, getHeartPosition, getPosition, hasBuddy: () => pokemon !== null };
 };

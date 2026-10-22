@@ -10,6 +10,7 @@ import { TALL_GRASS_GROUND_COLOR } from '../constants/colors.js';
 import { createRandom } from '../utils/random.js';
 import { NPCS, NPC_CLEAR_RADIUS } from '../constants/npcs.js';
 import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
+import { createGrassMaterial } from './grassMaterial.js';
 
 // Layout van de grasvelden (vaste seed): lijst van cirkels { x, z, radius }.
 const createBlobs = () => {
@@ -82,7 +83,11 @@ export const createTallGrass = async (random) => {
     group.add(ground);
   }
 
-  const grass = await loadPrototype(MODELS.grass);
+  // Gras krijgt een node-materiaal dat wegbuigt voor de trainer en wiegt in de wind.
+  const grass = (await loadPrototype(MODELS.grass)).map(({ geometry, material }) => ({
+    geometry,
+    material: createGrassMaterial(material),
+  }));
   const transforms = createGrassTransforms(random);
   const instances = createInstances(grass, transforms);
   group.add(instances);

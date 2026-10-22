@@ -37,3 +37,12 @@ export const COUNTS = {
   bushes: 30,
   flowers: 140,
 };
+
+// Gras dat wegbuigt voor de trainer/buddy en zacht wiegt in de wind (vertex-shader in TSL).
+export const GRASS_MOTION = {
+  height: 0.7, // ongeveer de hoogte van een pluk: daarboven buigt het maximaal
+  bendRadius: 1.4, // binnen deze afstand buigt het gras weg
+  bendStrength: 0.55,
+  rustle: 0.08, // extra trillen terwijl je erdoor loopt
+  wind: 0.05,
+};

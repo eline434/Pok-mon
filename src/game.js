@@ -4,6 +4,7 @@ import { createField } from './objects/field.js';
 import { createTrainer } from './objects/trainer.js';
 import { createHeart } from './objects/heart.js';
 import { createTallGrass, isInTallGrass } from './objects/tallGrass.js';
+import { updateGrassUniforms } from './objects/grassMaterial.js';
 import { createScenery } from './objects/scenery.js';
 import { createRandom } from './utils/random.js';
 import { WORLD_SEED } from './constants/world.js';
@@ -312,6 +313,10 @@ renderer.setAnimationLoop((time) => {
     followCamera.update(delta);
     buddy.update(delta, trainer.group);
 
+    // Gras buigt weg voor trainer en buddy.
+    const moving = movement.x !== 0 || movement.z !== 0;
+    updateGrassUniforms(delta, trainer.group.position, buddy.getPosition(), moving);
+
     // Wandelen met je buddy levert XP op.
     if (buddy.hasBuddy() && (movement.x !== 0 || movement.z !== 0)) {
       walkTime += delta;
@@ -344,6 +349,7 @@ renderer.setAnimationLoop((time) => {
     training.update(delta);
     battle.update(delta);
     hud.setTalkPrompt(null);
+    updateGrassUniforms(delta, trainer.group.position, null, false); // wind blijft waaien
   }
 
   npcs.forEach((npc) => npc.update(delta, trainer.group.position));
