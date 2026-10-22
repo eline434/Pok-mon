@@ -8,6 +8,7 @@ import {
 } from '../constants/world.js';
 import { TALL_GRASS_GROUND_COLOR } from '../constants/colors.js';
 import { createRandom } from '../utils/random.js';
+import { NPCS, NPC_CLEAR_RADIUS } from '../constants/npcs.js';
 import { loadPrototype, createInstances, writeInstanceMatrices } from './decor.js';
 
 // Layout van de grasvelden (vaste seed): lijst van cirkels { x, z, radius }.
@@ -28,11 +29,16 @@ const createBlobs = () => {
     for (let i = 0; i < blobCount; i++) {
       const angle = random.range(0, Math.PI * 2);
       const distance = i === 0 ? 0 : random.range(blobSpread.min, blobSpread.max);
-      result.push({
+      const blob = {
         x: x + Math.cos(angle) * distance,
         z: z + Math.sin(angle) * distance,
         radius: random.range(blobRadius.min, blobRadius.max),
-      });
+      };
+      // Geen gras op de plek van een NPC-trainer.
+      const nearNpc = NPCS.some(
+        ({ position }) => Math.hypot(position.x - blob.x, position.z - blob.z) < blob.radius + NPC_CLEAR_RADIUS,
+      );
+      if (!nearNpc) result.push(blob);
     }
   }
   return result;

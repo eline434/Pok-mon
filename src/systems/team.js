@@ -11,12 +11,13 @@ const load = () => {
       data.team.forEach((member) => {
         member.hp ??= maxHp(member.level);
       });
+      data.npcWins ??= {};
       return data;
     }
   } catch {
     // geen of kapotte save: opnieuw beginnen
   }
-  return { team: [], buddyUid: null };
+  return { team: [], buddyUid: null, npcWins: {} };
 };
 
 export const createTeam = () => {
@@ -61,8 +62,17 @@ export const createTeam = () => {
     save();
   };
 
+  // Hoe vaak je een NPC-trainer al versloeg (bepaalt het level van zijn pokémon).
+  const getNpcWins = (id) => state.npcWins[id] ?? 0;
+  const addNpcWin = (id) => {
+    state.npcWins[id] = getNpcWins(id) + 1;
+    save();
+  };
+
   return {
     add,
+    getNpcWins,
+    addNpcWin,
     updateMember,
     setBuddy,
     getMembers: () => state.team,

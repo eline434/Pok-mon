@@ -57,3 +57,14 @@ export const TRAINING = {
   gravity: 22,
   arenaPosition: { x: 0, z: -140 }, // buiten het veld, uit het zicht
 };
+
+// Gevechten tegen NPC's (beurtgebaseerd).
+export const BATTLE = {
+  attack: { power: 9, accuracy: 0.95 },
+  strong: { power: 15, accuracy: 0.65 },
+  defendFactor: 0.4, // verdedigen: je krijgt maar 40% van de schade
+  // Kansen voor de keuze van de tegenstander.
+  enemyChoices: { attack: 0.6, strong: 0.25, defend: 0.15 },
+  xpBase: 10,
+  xpPerEnemyLevel: 2,
+};

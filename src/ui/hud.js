@@ -21,6 +21,14 @@ export const createHud = (team, { onTrain } = {}) => {
       <p id="pet-status"></p>
     </section>
     <p id="training-stats" hidden></p>
+    <section id="battle-bars" hidden>
+      <div class="fighter" id="battle-player"><p></p><div class="bar hp"><div></div></div><span></span></div>
+      <div class="fighter" id="battle-enemy"><p></p><div class="bar hp"><div></div></div><span></span></div>
+    </section>
+    <div id="talk-prompt" hidden>
+      <span></span>
+      <button class="hud-button" type="button">Vechten <kbd>F</kbd></button>
+    </div>
     <p id="toast" hidden></p>
     <p id="grass-hint" hidden>Je loopt door hoog gras…</p>
     <section id="encounter-panel" hidden>
@@ -53,6 +61,12 @@ export const createHud = (team, { onTrain } = {}) => {
   const trainButton = root.querySelector('#train-button');
   const trainingStats = root.querySelector('#training-stats');
   const toastElement = root.querySelector('#toast');
+  const battleBars = root.querySelector('#battle-bars');
+  const talkPrompt = root.querySelector('#talk-prompt');
+  const talkText = talkPrompt.querySelector('span');
+  const talkButton = talkPrompt.querySelector('button');
+  let onTalk = null;
+  talkButton.addEventListener('click', () => onTalk?.());
   const teamList = root.querySelector('#team-list');
 
   // Encounter-paneel
@@ -122,6 +136,31 @@ export const createHud = (team, { onTrain } = {}) => {
     trainingStats.hidden = !stats;
     if (!stats) return;
     trainingStats.textContent = `Levens: ${'♥'.repeat(stats.lives)}${'♡'.repeat(Math.max(0, 3 - stats.lives))}   ·   Ontweken: ${stats.dodged}   ·   ${stats.timeLeft}s`;
+  };
+
+  // HP-balken tijdens een gevecht (null = verbergen).
+  const renderFighter = (element, { name, level, hp, max }) => {
+    element.querySelector('p').textContent = `${name} – lv. ${level}`;
+    const bar = element.querySelector('.bar > div');
+    bar.style.width = `${(hp / max) * 100}%`;
+    bar.classList.toggle('is-low', hp / max < 0.3);
+    element.querySelector('span').textContent = `HP ${hp}/${max}`;
+  };
+  const setBattle = (battle) => {
+    battleBars.hidden = !battle;
+    if (!battle) return;
+    renderFighter(root.querySelector('#battle-player'), battle.player);
+    renderFighter(root.querySelector('#battle-enemy'), battle.enemy);
+  };
+
+  // Vraag om te vechten als je bij een NPC staat (text = null -> verbergen).
+  let lastTalkText = null;
+  const setTalkPrompt = (text, onClick) => {
+    onTalk = onClick;
+    if (text === lastTalkText) return;
+    lastTalkText = text;
+    talkPrompt.hidden = !text;
+    if (text) talkText.textContent = text;
   };
 
   // Korte melding bovenaan (bv. level up).
@@ -200,6 +239,8 @@ export const createHud = (team, { onTrain } = {}) => {
     setBuddy,
     setPetCooldown,
     setTrainingStats,
+    setBattle,
+    setTalkPrompt,
     toast,
   };
 };

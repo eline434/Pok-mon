@@ -33,6 +33,9 @@ import {
 import { applyXp, levelScale, maxHp } from './systems/progression.js';
 import { createArena } from './objects/arena.js';
 import { createTraining } from './systems/training.js';
+import { loadNpcModel, createNpc } from './objects/npc.js';
+import { createBattle } from './systems/battle.js';
+import { NPCS, NPC_TALK_RADIUS, NPC_LEVEL_STEP } from './constants/npcs.js';
 
 const canvas = document.querySelector('#app');
 const message = document.querySelector('#message');
@@ -81,9 +84,14 @@ const [trainer, tallGrass, scenery] = await Promise.all([
   createScenery(createRandom(WORLD_SEED + 1)),
   loadPokemonModels(),
   loadPokeballModel(),
+  loadNpcModel(),
 ]);
 const arena = createArena();
 scene.add(trainer.group, tallGrass.group, scenery.group, arena.group);
+
+// NPC-trainers in het veld.
+const npcs = NPCS.map((definition) => createNpc(definition));
+npcs.forEach((npc) => scene.add(npc.group));
 
 // Buddy (gekozen pokémon uit je team) met het aai-hartje erboven.
 const buddy = createBuddy();
@@ -183,7 +191,7 @@ team.onChange(syncBuddy);
 syncBuddy();
 const encounterChecker = createEncounterChecker(trainer.group.position);
 
-// 'explore' = rondlopen, 'encounter' = wilde pokémon, 'training' = ballen ontwijken.
+// 'explore' = rondlopen, 'encounter' = wilde pokémon, 'training' = ballen ontwijken, 'battle' = NPC-gevecht.
 let mode = 'explore';
 let walkTime = 0;
 const NO_INPUT = { x: 0, z: 0 };
@@ -222,6 +230,49 @@ const training = createTraining({
   },
 });
 
+const battle = createBattle({
+  camera,
+  arena,
+  transition,
+  hud,
+  team,
+  onEnd: ({ won, xp }) => {
+    mode = 'explore';
+    pointer.setEnabled(true);
+    followCamera.snap();
+    syncBuddy(); // HP is veranderd tijdens het gevecht
+    if (won) giveXp(xp);
+  },
+});
+
+// Dichtstbijzijnde NPC binnen praatafstand (of null).
+const nearbyNpc = () => {
+  let nearest = null;
+  for (const npc of npcs) {
+    const distance = npc.distanceTo(trainer.group.position);
+    if (distance < NPC_TALK_RADIUS && (!nearest || distance < nearest.distance)) nearest = { npc, distance };
+  }
+  return nearest?.npc ?? null;
+};
+
+const startBattle = (npc) => {
+  if (!npc || mode !== 'explore') return;
+  const member = team.getBuddy();
+  const { name } = npc.definition;
+  if (!member) {
+    hud.toast(`${name}: Je hebt nog geen pokémon! Vang er eerst een in het hoge gras.`, 3000);
+    return;
+  }
+  if (member.hp <= 0) {
+    hud.toast(`${getSpecies(member.species).name} is uitgeput en kan niet vechten. Aai hem eerst.`, 3000);
+    return;
+  }
+  mode = 'battle';
+  pointer.setEnabled(false);
+  hud.setTalkPrompt(null);
+  battle.start(npc, member);
+};
+
 const startTraining = () => {
   const member = team.getBuddy();
   if (!member || mode !== 'explore') return;
@@ -243,6 +294,7 @@ window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
   if (event.code === 'KeyE' || key === 'e') startEncounter(getSpecies(params.get('species')) ?? pickSpecies());
   if (event.code === 'KeyR' || key === 'r') startTraining();
+  if (event.code === 'KeyF' || key === 'f') startBattle(nearbyNpc());
 });
 
 window.addEventListener('resize', () => {
@@ -276,6 +328,18 @@ renderer.setAnimationLoop((time) => {
     }
     hud.setPetCooldown(petCooldownLeft());
 
+    // Vraag om te vechten als je bij een NPC staat.
+    const npc = nearbyNpc();
+    if (npc) {
+      const { name, baseLevel, pokemon, id } = npc.definition;
+      const wins = team.getNpcWins(id);
+      const level = baseLevel + wins * NPC_LEVEL_STEP;
+      const record = wins > 0 ? ` (al ${wins}x verslagen)` : '';
+      hud.setTalkPrompt(`${name} wil vechten met ${getSpecies(pokemon).name} lv. ${level}${record}`, () => startBattle(npc));
+    } else {
+      hud.setTalkPrompt(null);
+    }
+
     const inTallGrass = isInTallGrass(trainer.group.position);
     hud.setGrassHint(inTallGrass);
     const species = encounterChecker.update(trainer.group.position, inTallGrass);
@@ -284,7 +348,11 @@ renderer.setAnimationLoop((time) => {
     trainer.update(delta, NO_INPUT);
     wildEncounter.update(delta);
     training.update(delta);
+    battle.update(delta);
+    hud.setTalkPrompt(null);
   }
+
+  npcs.forEach((npc) => npc.update(delta, trainer.group.position));
 
   // Buddy enkel tijdens rondlopen, hartje enkel net na het aaien.
   buddy.group.visible = mode === 'explore';
@@ -293,7 +361,8 @@ renderer.setAnimationLoop((time) => {
   heart.update(delta, camera);
 
   // Zon volgt de trainer (of de arena tijdens het trainen) zodat de schaduwen scherp blijven.
-  const focus = mode === 'training' ? arena.group.position : trainer.group.position;
+  const inArena = mode === 'training' || mode === 'battle';
+  const focus = inArena ? arena.group.position : trainer.group.position;
   sun.position.copy(focus).add(SUN_OFFSET);
   sun.target.position.copy(focus);
 

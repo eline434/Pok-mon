@@ -208,11 +208,13 @@ body {
   transition: width 0.3s ease;
 }
 
-#buddy-hp {
+#buddy-hp,
+.bar.hp > div {
   background: linear-gradient(90deg, #7bd36b, #3e9b3a);
 }
 
-#buddy-hp.is-low {
+#buddy-hp.is-low,
+.bar.hp > div.is-low {
   background: linear-gradient(90deg, #f28b6b, #d6382b);
 }
 
@@ -265,4 +267,56 @@ body {
     top: 4rem;
     width: 11rem;
   }
+}
+
+#battle-bars {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+}
+
+#battle-bars[hidden],
+#talk-prompt[hidden] {
+  display: none;
+}
+
+.fighter {
+  width: min(16rem, 45vw);
+  padding: 0.6rem 0.8rem;
+  border: 2px solid #1d2b1a;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.fighter p {
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+
+.fighter span {
+  display: block;
+  margin-top: 0.2rem;
+  color: #555;
+  font-size: 12px;
+}
+
+#talk-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.6rem 0.8rem 0.6rem 1rem;
+  border: 2px solid #1d2b1a;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
 }
